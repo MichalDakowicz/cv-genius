@@ -1,0 +1,535 @@
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --info-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+}
+
+body {
+    font-family: "Inter", sans-serif;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    min-height: 100vh;
+}
+
+/* Main container layout */
+.container-fluid {
+    max-width: 100%;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+/* Row flex display for proper side-by-side layout */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+}
+
+/* Ensure columns display properly */
+.row > * {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    padding-right: calc(var(--bs-gutter-x, 1.5rem) * 0.5);
+    padding-left: calc(var(--bs-gutter-x, 1.5rem) * 0.5);
+    margin-top: var(--bs-gutter-y, 0);
+}
+
+.theme-toggle {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1050;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    border: none;
+    background: #0b60c2;
+    color: white;
+    /* box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); */
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    transform: translate(3px, -3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.header-gradient {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    border-radius: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.header-gradient::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.1)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></radialGradient></defs><circle cx="200" cy="200" r="300" fill="url(%23a)"/><circle cx="800" cy="800" r="200" fill="url(%23a)"/></svg>');
+    opacity: 0.1;
+}
+
+.card-custom {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.btn-custom {
+    border-radius: 0.75rem;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.form-control-custom {
+    border-radius: 0.75rem;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-custom:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Layout improvements for side-by-side display */
+.row.g-4 {
+    min-height: calc(100vh - 200px);
+}
+
+/* Ensure proper column sizing for side-by-side layout */
+@media (min-width: 992px) {
+    .col-lg-4,
+    .col-xl-4 {
+        flex: 0 0 33.333333% !important;
+        max-width: 33.333333% !important;
+        width: 33.333333% !important;
+    }
+
+    .col-lg-8,
+    .col-xl-8 {
+        flex: 0 0 66.666667% !important;
+        max-width: 66.666667% !important;
+        width: 66.666667% !important;
+    }
+
+    /* Force the row to display as flex */
+    .row.g-4 {
+        display: flex !important;
+        flex-direction: row !important;
+    }
+}
+
+/* Small screens - stack vertically */
+@media (max-width: 991px) {
+    .col-12,
+    .col-lg-4,
+    .col-lg-8,
+    .col-xl-4,
+    .col-xl-8 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .sticky-top {
+        position: relative;
+        top: auto;
+    }
+}
+
+/* Ensure sticky positioning works correctly */
+.sticky-top {
+    position: sticky;
+    top: 2rem;
+    z-index: 1020;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+}
+
+.cv-preview {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+    min-height: 800px;
+    width: 100%;
+}
+
+.section-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+.ai-suggestion-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1060;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.ai-popup-content {
+    max-width: 800px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 1rem;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+    .theme-toggle {
+        top: 1rem;
+        right: 1rem;
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}
+
+/* Dark mode styles */
+[data-bs-theme="dark"] {
+    --bs-body-bg: #1a1a1a;
+    --bs-body-color: #ffffff;
+}
+
+[data-bs-theme="dark"] body {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+}
+
+[data-bs-theme="dark"] .card-custom {
+    background: rgba(33, 37, 41, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Dark mode for the specific gradient card with inline styles */
+[data-bs-theme="dark"]
+    .card[style*="background: linear-gradient(135deg, #e3f2fd, #f3e5f5)"] {
+    background: linear-gradient(135deg, #1e3a5f, #00356e) !important;
+    border-color: #495057 !important;
+}
+
+/* Better approach - target the specific add content card */
+[data-bs-theme="dark"] .add-content-card {
+    background: linear-gradient(135deg, #1e3a5f, #00356e) !important;
+    border-color: #495057 !important;
+}
+
+/* Alternative approach - target the card by content */
+[data-bs-theme="dark"] .card-custom .card:has(.fa-plus-circle) {
+    background: linear-gradient(135deg, #1e3a5f, #00356e) !important;
+    border-color: #495057 !important;
+}
+
+[data-bs-theme="dark"] .cv-preview {
+    background: #2d2d2d;
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] .form-control-custom {
+    background-color: #2d2d2d;
+    border-color: #495057;
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] .form-control-custom:focus {
+    background-color: #2d2d2d;
+    border-color: var(--primary-color);
+    color: #ffffff;
+}
+
+/* Dark mode placeholder text */
+[data-bs-theme="dark"] .form-control-custom::placeholder {
+    color: #adb5bd !important;
+    opacity: 0.8;
+}
+
+[data-bs-theme="dark"] .form-select {
+    background-color: #2d2d2d;
+    border-color: #495057;
+    color: #ffffff;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+}
+
+[data-bs-theme="dark"] .form-select:focus {
+    background-color: #2d2d2d;
+    border-color: var(--primary-color);
+    color: #ffffff;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Additional dark mode form controls */
+[data-bs-theme="dark"] .form-control {
+    background-color: #2d2d2d;
+    border-color: #495057;
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] .form-control:focus {
+    background-color: #2d2d2d;
+    border-color: var(--primary-color);
+    color: #ffffff;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+[data-bs-theme="dark"] .form-control::placeholder {
+    color: #adb5bd !important;
+    opacity: 0.8;
+}
+
+/* Dark mode for textarea elements specifically */
+[data-bs-theme="dark"] textarea.form-control {
+    background-color: #2d2d2d;
+    border-color: #495057;
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] textarea.form-control:focus {
+    background-color: #2d2d2d;
+    border-color: var(--primary-color);
+    color: #ffffff;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+[data-bs-theme="dark"] textarea.form-control::placeholder {
+    color: #adb5bd !important;
+    opacity: 0.8;
+}
+
+/* Dark mode for AI popup */
+[data-bs-theme="dark"] .ai-popup-content {
+    background: #2d2d2d;
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] .ai-popup-content .bg {
+    background: #495057 !important;
+}
+
+/* Dark mode for buttons */
+[data-bs-theme="dark"] .btn-outline-secondary {
+    border-color: #6c757d;
+    color: #adb5bd;
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #ffffff;
+}
+
+/* Dark mode for badges */
+[data-bs-theme="dark"] .badge.bg {
+    background: #495057 !important;
+    color: #ffffff !important;
+}
+
+/* Dark mode for borders */
+[data-bs-theme="dark"] .border {
+    border-color: #495057 !important;
+}
+
+[data-bs-theme="dark"] .border-top {
+    border-top-color: #495057 !important;
+}
+
+/* Dark mode text colors */
+[data-bs-theme="dark"] .text-muted {
+    color: #adb5bd !important;
+}
+[data-bs-theme="dark"] #cvHeaderContent .text-muted {
+    color: #fafafa !important;
+}
+
+/* Dark mode for input groups */
+[data-bs-theme="dark"] .input-group-text {
+    background-color: #495057;
+    border-color: #495057;
+    color: #ffffff;
+}
+
+/* Dark mode for labels */
+[data-bs-theme="dark"] .form-label {
+    color: #ffffff;
+}
+
+/* Dark mode for small text */
+[data-bs-theme="dark"] .small {
+    color: #adb5bd;
+}
+
+/* Dark mode for headings */
+[data-bs-theme="dark"] h1,
+[data-bs-theme="dark"] h2,
+[data-bs-theme="dark"] h3,
+[data-bs-theme="dark"] h4,
+[data-bs-theme="dark"] h5,
+[data-bs-theme="dark"] h6 {
+    color: #ffffff;
+}
+
+/* Dark mode for paragraphs */
+[data-bs-theme="dark"] p {
+    color: #adb5bd;
+}
+
+/* Dark mode for secondary text */
+[data-bs-theme="dark"] .text-secondary {
+    color: #adb5bd !important;
+}
+
+/* Ensure all input types have consistent dark mode styling */
+[data-bs-theme="dark"] input[type="text"],
+[data-bs-theme="dark"] input[type="email"],
+[data-bs-theme="dark"] input[type="tel"],
+[data-bs-theme="dark"] input[type="url"],
+[data-bs-theme="dark"] input[type="password"],
+[data-bs-theme="dark"] input[type="number"],
+[data-bs-theme="dark"] input[type="date"] {
+    background-color: #2d2d2d;
+    border-color: #495057;
+    color: #ffffff;
+}
+
+[data-bs-theme="dark"] input[type="text"]:focus,
+[data-bs-theme="dark"] input[type="email"]:focus,
+[data-bs-theme="dark"] input[type="tel"]:focus,
+[data-bs-theme="dark"] input[type="url"]:focus,
+[data-bs-theme="dark"] input[type="password"]:focus,
+[data-bs-theme="dark"] input[type="number"]:focus,
+[data-bs-theme="dark"] input[type="date"]:focus {
+    background-color: #2d2d2d;
+    border-color: var(--primary-color);
+    color: #ffffff;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+[data-bs-theme="dark"] input[type="text"]::placeholder,
+[data-bs-theme="dark"] input[type="email"]::placeholder,
+[data-bs-theme="dark"] input[type="tel"]::placeholder,
+[data-bs-theme="dark"] input[type="url"]::placeholder,
+[data-bs-theme="dark"] input[type="password"]::placeholder,
+[data-bs-theme="dark"] input[type="number"]::placeholder {
+    color: #adb5bd !important;
+    opacity: 0.8;
+}
+
+/* Bootstrap utility extensions */
+.bg-gradient-purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important;
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+}
+
+.bg-gradient-secondary {
+    background: linear-gradient(135deg, #6b7280, #4b5563) !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(
+        135deg,
+        var(--primary-color),
+        #0056b3
+    ) !important;
+}
+
+.border-purple {
+    border-color: #8b5cf6 !important;
+}
+
+.text-purple {
+    color: #8b5cf6 !important;
+}
+
+.hover-text-primary:hover {
+    color: var(--primary-color) !important;
+}
+
+.min-width-0 {
+    min-width: 0;
+}
+
+.h-1 {
+    height: 0.25rem;
+}
+
+/* Print styles */
+@media print {
+    .cv-preview {
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    .theme-toggle,
+    .card-custom:not(.cv-preview),
+    .col-xl-4 {
+        display: none !important;
+    }
+
+    .col-xl-8 {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
