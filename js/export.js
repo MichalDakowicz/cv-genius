@@ -5,7 +5,8 @@
 
 // Extend CVGenius with export/import methods
 Object.assign(CVGenius.prototype, {
-    saveCV() {
+    // Auto-save to local storage
+    autoSaveToLocalStorage() {
         const cvData = {
             personalInfo: this.cvData.personalInfo,
             sections: this.sections.map((s) => ({
@@ -16,24 +17,298 @@ Object.assign(CVGenius.prototype, {
                 items: s.items || [],
                 visible: s.visible,
             })),
+            lastSaved: new Date().toISOString(),
         };
         localStorage.setItem("cvGeniusData", JSON.stringify(cvData));
-        this.showNotification("CV saved successfully!", "success");
-        this.renderPreview();
+        this.showAutoSaveIndicator();
+    },
+
+    // Show auto-save indicator
+    showAutoSaveIndicator() {
+        // Remove existing indicator
+        const existingIndicator = document.querySelector(
+            ".auto-save-indicator"
+        );
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+
+        // Create new indicator
+        const indicator = document.createElement("div");
+        indicator.className = "auto-save-indicator position-fixed";
+        indicator.style.cssText = `
+            top: 20px;
+            right: 20px;
+            background: var(--bs-success);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            z-index: 1060;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        `;
+        indicator.innerHTML = '<i class="fas fa-check me-1"></i>Auto-saved';
+
+        document.body.appendChild(indicator);
+
+        // Show indicator
+        setTimeout(() => {
+            indicator.style.opacity = "1";
+        }, 10);
+
+        // Hide indicator after 2 seconds
+        setTimeout(() => {
+            indicator.style.opacity = "0";
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }, 300);
+        }, 2000);
+    },
+
+    // Load from local storage
+    loadFromLocalStorage() {
+        try {
+            const savedData = localStorage.getItem("cvGeniusData");
+            if (savedData) {
+                const cvData = JSON.parse(savedData);
+                this.loadCVData(cvData);
+                return true;
+            }
+        } catch (error) {
+            console.error("Error loading from local storage:", error);
+        }
+        return false;
+    },
+
+    // Save CV (now shows a modal with options)
+    saveCV() {
+        this.showSaveModal();
+    },
+
+    // Save CV as file
+    exportCVAsFile() {
+        const cvData = {
+            personalInfo: this.cvData.personalInfo,
+            sections: this.sections.map((s) => ({
+                id: s.id,
+                type: s.type,
+                title: s.title,
+                content: s.content,
+                items: s.items || [],
+                visible: s.visible,
+            })),
+            exportedAt: new Date().toISOString(),
+        };
+
         const blob = new Blob([JSON.stringify(cvData, null, 2)], {
             type: "application/json",
         });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${new Date().toISOString().split("T")[0]}.json`;
+
+        // Use the same filename generation logic for consistency
+        const personalInfo = this.cvData.personalInfo;
+        const name = personalInfo.fullName || "cv-genius";
+        const latinName = this.convertToLatinChars(name);
+        const cleanName = latinName
+            .replace(/[^a-zA-Z0-9\s-]/g, "")
+            .replace(/\s+/g, "-");
+        const date = new Date().toISOString().split("T")[0];
+
+        a.download = `${cleanName}-${date}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+        this.showNotification("CV exported as file!", "success");
     },
 
-    loadCV() {
+    // Show save modal
+    showSaveModal() {
+        const existingModal = document.querySelector(".save-modal");
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const modalOverlay = document.createElement("div");
+        modalOverlay.className =
+            "save-modal position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center";
+        modalOverlay.style.cssText =
+            "background: rgba(0,0,0,0.5); z-index: 1053; backdrop-filter: blur(3px);";
+
+        const modalContent = document.createElement("div");
+        modalContent.className = "bg-body text-body rounded shadow-lg p-4 mx-3";
+        modalContent.style.cssText =
+            "max-width: 500px; width: 100%; border: 1px solid var(--bs-border-color, #dee2e6);";
+
+        modalContent.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fas fa-download me-2 text-primary"></i>Export & Manage</h4>
+                <button type="button" class="btn-close" onclick="this.closest('.save-modal').remove()"></button>
+            </div>
+            <p class="text-muted mb-4">Your CV is automatically saved. Choose an action:</p>
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-primary" onclick="cvGenius.exportCVAsFile(); this.closest('.save-modal').remove();">
+                    <i class="fas fa-download me-2"></i>Save as JSON
+                    <small class="d-block text-light opacity-75">Download JSON file to your computer</small>
+                </button>
+                <hr class="my-3">
+                <button type="button" class="btn btn-outline-danger" onclick="cvGenius.clearLocalStorage(); this.closest('.save-modal').remove();">
+                    <i class="fas fa-trash me-2"></i>Clear Local Storage
+                    <small class="d-block text-muted">Remove all saved CV data from browser</small>
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="this.closest('.save-modal').remove();">
+                    Cancel
+                </button>
+            </div>
+        `;
+
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+
+        modalOverlay.addEventListener("click", (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.remove();
+            }
+        });
+    },
+
+    // Load CV data (refactored for reusability)
+    loadCVData(cvData) {
+        if (!cvData || typeof cvData !== "object") {
+            throw new Error("Invalid CV data format");
+        }
+
+        if (cvData.personalInfo && typeof cvData.personalInfo === "object") {
+            this.cvData.personalInfo = cvData.personalInfo;
+
+            const personalFields = [
+                "fullName",
+                "jobTitle",
+                "email",
+                "phone",
+                "location",
+            ];
+            personalFields.forEach((field) => {
+                const element = document.getElementById(field);
+                if (element) {
+                    element.value = cvData.personalInfo[field] || "";
+                }
+            });
+
+            if (
+                cvData.personalInfo.websites &&
+                Array.isArray(cvData.personalInfo.websites)
+            ) {
+                const websiteContainer =
+                    document.getElementById("websiteContainer");
+                if (websiteContainer) {
+                    websiteContainer.innerHTML = "";
+                    cvData.personalInfo.websites.forEach((website) => {
+                        this.addWebsiteFieldWithData(website);
+                    });
+                }
+            }
+        }
+
+        if (cvData.sections && Array.isArray(cvData.sections)) {
+            this.sections = [];
+            const formContainer = document.getElementById("formContainer");
+            if (formContainer) {
+                const sectionForms =
+                    formContainer.querySelectorAll(".form-section");
+                sectionForms.forEach((form) => form.remove());
+            }
+
+            cvData.sections.forEach((sectionData) => {
+                if (!sectionData.id || !sectionData.type) {
+                    console.warn("Skipping invalid section:", sectionData);
+                    return;
+                }
+
+                const section = {
+                    id: sectionData.id,
+                    type: sectionData.type,
+                    title:
+                        sectionData.title ||
+                        this.getSectionTitle(sectionData.type),
+                    visible: sectionData.visible !== false,
+                };
+
+                if (
+                    ["experience", "education", "skills"].includes(section.type)
+                ) {
+                    section.items =
+                        sectionData.items ||
+                        this.getDefaultContent(section.type);
+                } else {
+                    section.content =
+                        sectionData.content ||
+                        this.getDefaultContent(section.type);
+                }
+
+                this.sections.push(section);
+                this.createSectionForm(section);
+            });
+
+            this.cvData.sections = this.sections;
+        }
+
+        this.renderPreview();
+    },
+
+    // Show load modal
+    showLoadModal() {
+        const existingModal = document.querySelector(".load-modal");
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const modalOverlay = document.createElement("div");
+        modalOverlay.className =
+            "load-modal position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center";
+        modalOverlay.style.cssText =
+            "background: rgba(0,0,0,0.5); z-index: 1053; backdrop-filter: blur(3px);";
+
+        const modalContent = document.createElement("div");
+        modalContent.className = "bg-body text-body rounded shadow-lg p-4 mx-3";
+        modalContent.style.cssText =
+            "max-width: 500px; width: 100%; border: 1px solid var(--bs-border-color, #dee2e6);";
+
+        modalContent.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fas fa-file-import me-2 text-info"></i>Import CV</h4>
+                <button type="button" class="btn-close" onclick="this.closest('.load-modal').remove()"></button>
+            </div>
+            <p class="text-muted mb-4">Import a CV file from your computer. Your CV is automatically saved and loaded from local storage.</p>
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-primary" onclick="cvGenius.loadFromFile(); this.closest('.load-modal').remove();">
+                    <i class="fas fa-file-import me-2 text-white"></i>Import from File
+                    <small class="d-block text-light opacity-75">Import JSON file from your computer</small>
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="this.closest('.load-modal').remove();">
+                    Cancel
+                </button>
+            </div>
+        `;
+
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+
+        modalOverlay.addEventListener("click", (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.remove();
+            }
+        });
+    },
+
+    // Load from file
+    loadFromFile() {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = ".json";
@@ -55,108 +330,10 @@ Object.assign(CVGenius.prototype, {
             reader.onload = (e) => {
                 try {
                     const cvData = JSON.parse(e.target.result);
-
-                    if (!cvData || typeof cvData !== "object") {
-                        throw new Error("Invalid CV data format");
-                    }
-
-                    if (
-                        cvData.personalInfo &&
-                        typeof cvData.personalInfo === "object"
-                    ) {
-                        this.cvData.personalInfo = cvData.personalInfo;
-
-                        const personalFields = [
-                            "fullName",
-                            "jobTitle",
-                            "email",
-                            "phone",
-                            "location",
-                        ];
-                        personalFields.forEach((field) => {
-                            const element = document.getElementById(field);
-                            if (element) {
-                                element.value =
-                                    cvData.personalInfo[field] || "";
-                            }
-                        });
-
-                        if (
-                            cvData.personalInfo.websites &&
-                            Array.isArray(cvData.personalInfo.websites)
-                        ) {
-                            const websiteContainer =
-                                document.getElementById("websiteContainer");
-                            if (websiteContainer) {
-                                websiteContainer.innerHTML = "";
-
-                                cvData.personalInfo.websites.forEach(
-                                    (website) => {
-                                        this.addWebsiteFieldWithData(website);
-                                    }
-                                );
-                            }
-                        }
-                    }
-
-                    if (cvData.sections && Array.isArray(cvData.sections)) {
-                        this.sections = [];
-                        const formContainer =
-                            document.getElementById("formContainer");
-                        if (formContainer) {
-                            const sectionForms =
-                                formContainer.querySelectorAll(".form-section");
-                            sectionForms.forEach((form) => form.remove());
-                        }
-
-                        cvData.sections.forEach((sectionData) => {
-                            if (!sectionData.id || !sectionData.type) {
-                                console.warn(
-                                    "Skipping invalid section:",
-                                    sectionData
-                                );
-                                return;
-                            }
-
-                            const section = {
-                                id: sectionData.id,
-                                type: sectionData.type,
-                                title:
-                                    sectionData.title ||
-                                    this.getSectionTitle(sectionData.type),
-                                visible: sectionData.visible !== false,
-                            };
-
-                            if (
-                                ["experience", "education", "skills"].includes(
-                                    section.type
-                                )
-                            ) {
-                                section.items =
-                                    sectionData.items ||
-                                    this.getDefaultContent(section.type);
-                            } else {
-                                section.content =
-                                    sectionData.content ||
-                                    this.getDefaultContent(section.type);
-                            }
-
-                            this.sections.push(section);
-
-                            this.createSectionForm(section);
-                        });
-
-                        this.cvData.sections = this.sections;
-                    }
-
-                    this.renderPreview();
-
+                    this.loadCVData(cvData);
                     this.showNotification("CV loaded successfully!", "success");
-
-                    localStorage.setItem(
-                        "cvGeniusData",
-                        JSON.stringify(cvData)
-                    );
+                    // Also save to localStorage for future quick access
+                    this.autoSaveToLocalStorage();
                 } catch (error) {
                     console.error("Error loading CV:", error);
                     this.showNotification(
@@ -178,6 +355,29 @@ Object.assign(CVGenius.prototype, {
         document.body.removeChild(input);
     },
 
+    // Clear local storage
+    clearLocalStorage() {
+        if (
+            confirm(
+                "Are you sure you want to clear all saved CV data from local storage? This action cannot be undone."
+            )
+        ) {
+            localStorage.removeItem("cvGeniusData");
+            this.showNotification(
+                "Local storage cleared! Page will refresh.",
+                "success"
+            );
+            // Refresh the page after a short delay to show the notification
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+    },
+
+    loadCV() {
+        this.showLoadModal();
+    },
+
     showExportModal() {
         const existingModal = document.querySelector(".export-modal");
         if (existingModal) {
@@ -197,7 +397,7 @@ Object.assign(CVGenius.prototype, {
 
         modalContent.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0"><i class="fas fa-download me-2 text-primary"></i>Export CV</h4>
+                <h4 class="mb-0"><i class="fas fa-download me-2 text-primary"></i>Save CV</h4>
                 <button type="button" class="btn-close" id="closeExportModal"></button>
             </div>
             <div class="mb-4">
@@ -266,12 +466,13 @@ Object.assign(CVGenius.prototype, {
             const printContent = this.getPrintableContent();
 
             const printWindow = window.open("", "_blank");
+            printWindow.document.open();
             printWindow.document.write(printContent);
             printWindow.document.close();
 
             await new Promise((resolve) => {
                 printWindow.onload = resolve;
-                setTimeout(resolve, 500);
+                setTimeout(resolve, 1000);
             });
 
             printWindow.focus();
@@ -528,12 +729,379 @@ Object.assign(CVGenius.prototype, {
         `;
     },
 
+    // Convert non-Latin characters to Latin equivalents
+    convertToLatinChars(text) {
+        const charMap = {
+            // Polish characters
+            ą: "a",
+            ć: "c",
+            ę: "e",
+            ł: "l",
+            ń: "n",
+            ó: "o",
+            ś: "s",
+            ź: "z",
+            ż: "z",
+            Ą: "A",
+            Ć: "C",
+            Ę: "E",
+            Ł: "L",
+            Ń: "N",
+            Ó: "O",
+            Ś: "S",
+            Ź: "Z",
+            Ż: "Z",
+
+            // German characters
+            ä: "ae",
+            ö: "oe",
+            ü: "ue",
+            ß: "ss",
+            Ä: "AE",
+            Ö: "OE",
+            Ü: "UE",
+
+            // French characters
+            à: "a",
+            á: "a",
+            â: "a",
+            ã: "a",
+            ä: "a",
+            å: "a",
+            è: "e",
+            é: "e",
+            ê: "e",
+            ë: "e",
+            ì: "i",
+            í: "i",
+            î: "i",
+            ï: "i",
+            ò: "o",
+            ó: "o",
+            ô: "o",
+            õ: "o",
+            ö: "o",
+            ù: "u",
+            ú: "u",
+            û: "u",
+            ü: "u",
+            ý: "y",
+            ÿ: "y",
+            ç: "c",
+            ñ: "n",
+            À: "A",
+            Á: "A",
+            Â: "A",
+            Ã: "A",
+            Ä: "A",
+            Å: "A",
+            È: "E",
+            É: "E",
+            Ê: "E",
+            Ë: "E",
+            Ì: "I",
+            Í: "I",
+            Î: "I",
+            Ï: "I",
+            Ò: "O",
+            Ó: "O",
+            Ô: "O",
+            Õ: "O",
+            Ö: "O",
+            Ù: "U",
+            Ú: "U",
+            Û: "U",
+            Ü: "U",
+            Ý: "Y",
+            Ÿ: "Y",
+            Ç: "C",
+            Ñ: "N",
+
+            // Spanish characters
+            ñ: "n",
+            Ñ: "N",
+
+            // Italian characters
+            à: "a",
+            è: "e",
+            ì: "i",
+            ò: "o",
+            ù: "u",
+            À: "A",
+            È: "E",
+            Ì: "I",
+            Ò: "O",
+            Ù: "U",
+
+            // Portuguese characters
+            ã: "a",
+            õ: "o",
+            ç: "c",
+            Ã: "A",
+            Õ: "O",
+            Ç: "C",
+
+            // Czech characters
+            č: "c",
+            ď: "d",
+            ě: "e",
+            ň: "n",
+            ř: "r",
+            š: "s",
+            ť: "t",
+            ů: "u",
+            ž: "z",
+            Č: "C",
+            Ď: "D",
+            Ě: "E",
+            Ň: "N",
+            Ř: "R",
+            Š: "S",
+            Ť: "T",
+            Ů: "U",
+            Ž: "Z",
+
+            // Slovak characters
+            á: "a",
+            ä: "a",
+            č: "c",
+            ď: "d",
+            é: "e",
+            í: "i",
+            ĺ: "l",
+            ľ: "l",
+            ň: "n",
+            ó: "o",
+            ô: "o",
+            ŕ: "r",
+            š: "s",
+            ť: "t",
+            ú: "u",
+            ý: "y",
+            ž: "z",
+            Á: "A",
+            Ä: "A",
+            Č: "C",
+            Ď: "D",
+            É: "E",
+            Í: "I",
+            Ĺ: "L",
+            Ľ: "L",
+            Ň: "N",
+            Ó: "O",
+            Ô: "O",
+            Ŕ: "R",
+            Š: "S",
+            Ť: "T",
+            Ú: "U",
+            Ý: "Y",
+            Ž: "Z",
+
+            // Hungarian characters
+            á: "a",
+            é: "e",
+            í: "i",
+            ó: "o",
+            ö: "oe",
+            ő: "o",
+            ú: "u",
+            ü: "ue",
+            ű: "u",
+            Á: "A",
+            É: "E",
+            Í: "I",
+            Ó: "O",
+            Ö: "OE",
+            Ő: "O",
+            Ú: "U",
+            Ü: "UE",
+            Ű: "U",
+
+            // Romanian characters
+            ă: "a",
+            â: "a",
+            î: "i",
+            ș: "s",
+            ț: "t",
+            Ă: "A",
+            Â: "A",
+            Î: "I",
+            Ș: "S",
+            Ț: "T",
+
+            // Russian/Cyrillic characters
+            а: "a",
+            б: "b",
+            в: "v",
+            г: "g",
+            д: "d",
+            е: "e",
+            ё: "yo",
+            ж: "zh",
+            з: "z",
+            и: "i",
+            й: "y",
+            к: "k",
+            л: "l",
+            м: "m",
+            н: "n",
+            о: "o",
+            п: "p",
+            р: "r",
+            с: "s",
+            т: "t",
+            у: "u",
+            ф: "f",
+            х: "h",
+            ц: "ts",
+            ч: "ch",
+            ш: "sh",
+            щ: "sch",
+            ъ: "",
+            ы: "y",
+            ь: "",
+            э: "e",
+            ю: "yu",
+            я: "ya",
+            А: "A",
+            Б: "B",
+            В: "V",
+            Г: "G",
+            Д: "D",
+            Е: "E",
+            Ё: "YO",
+            Ж: "ZH",
+            З: "Z",
+            И: "I",
+            Й: "Y",
+            К: "K",
+            Л: "L",
+            М: "M",
+            Н: "N",
+            О: "O",
+            П: "P",
+            Р: "R",
+            С: "S",
+            Т: "T",
+            У: "U",
+            Ф: "F",
+            Х: "H",
+            Ц: "TS",
+            Ч: "CH",
+            Ш: "SH",
+            Щ: "SCH",
+            Ъ: "",
+            Ы: "Y",
+            Ь: "",
+            Э: "E",
+            Ю: "YU",
+            Я: "YA",
+
+            // Greek characters
+            α: "a",
+            β: "b",
+            γ: "g",
+            δ: "d",
+            ε: "e",
+            ζ: "z",
+            η: "h",
+            θ: "th",
+            ι: "i",
+            κ: "k",
+            λ: "l",
+            μ: "m",
+            ν: "n",
+            ξ: "x",
+            ο: "o",
+            π: "p",
+            ρ: "r",
+            σ: "s",
+            τ: "t",
+            υ: "y",
+            φ: "f",
+            χ: "ch",
+            ψ: "ps",
+            ω: "w",
+            Α: "A",
+            Β: "B",
+            Γ: "G",
+            Δ: "D",
+            Ε: "E",
+            Ζ: "Z",
+            Η: "H",
+            Θ: "TH",
+            Ι: "I",
+            Κ: "K",
+            Λ: "L",
+            Μ: "M",
+            Ν: "N",
+            Ξ: "X",
+            Ο: "O",
+            Π: "P",
+            Ρ: "R",
+            Σ: "S",
+            Τ: "T",
+            Υ: "Y",
+            Φ: "F",
+            Χ: "CH",
+            Ψ: "PS",
+            Ω: "W",
+
+            // Turkish characters
+            ç: "c",
+            ğ: "g",
+            ı: "i",
+            ş: "s",
+            ü: "u",
+            ö: "o",
+            Ç: "C",
+            Ğ: "G",
+            İ: "I",
+            Ş: "S",
+            Ü: "U",
+            Ö: "O",
+
+            // Nordic characters
+            å: "a",
+            æ: "ae",
+            ø: "o",
+            đ: "d",
+            þ: "th",
+            ð: "d",
+            Å: "A",
+            Æ: "AE",
+            Ø: "O",
+            Đ: "D",
+            Þ: "TH",
+            Ð: "D",
+
+            // Other common characters
+            "€": "EUR",
+            "£": "GBP",
+            $: "USD",
+            "¥": "JPY",
+            "©": "c",
+            "®": "r",
+            "™": "tm",
+        };
+
+        return text.replace(/[^\x00-\x7F]/g, function (char) {
+            return charMap[char] || char;
+        });
+    },
+
     getFileName() {
         const personalInfo = this.cvData.personalInfo;
         const name = personalInfo.fullName || "CV";
-        const cleanName = name
+
+        // First convert non-Latin characters to Latin equivalents
+        const latinName = this.convertToLatinChars(name);
+
+        // Then clean up the filename
+        const cleanName = latinName
             .replace(/[^a-zA-Z0-9\s-]/g, "")
             .replace(/\s+/g, "-");
+
         const date = new Date().toISOString().split("T")[0];
         return `${cleanName}-${date}`;
     },

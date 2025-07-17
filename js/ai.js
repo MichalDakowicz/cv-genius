@@ -131,6 +131,12 @@ SUGGESTIONS:
 [Priority:Low] [Type:Skills] - [specific suggestion text]
 [Continue with more suggestions...]
 
+CRITICAL FORMATTING REQUIREMENTS:
+- Priority MUST be exactly one of: High, Medium, Low (in English)
+- Type MUST be exactly one of: Content, Formatting, Skills, Experience, General (in English)
+- Only the suggestion text after the dash should be in the requested language
+- The [Priority:] and [Type:] tags must always be in English
+
 ${langInstruction}
 
 CV CONTENT:
@@ -149,8 +155,14 @@ ${cvContentText}`;
             // Extract suggestions with more flexible patterns
             const suggestionPatterns = [
                 /^\[Priority:(.*?)\]\s*\[Type:(.*?)\]\s*-\s*(.*)$/gm,
-                /^\[(High|Medium|Low)\]\s*\[(.*?)\]\s*-\s*(.*)$/gm,
-                /^(High|Medium|Low)\s*Priority.*?-\s*(.*)$/gm,
+                /^\[Priorytet:(.*?)\]\s*\[Typ:(.*?)\]\s*-\s*(.*)$/gm, // Polish
+                /^\[Prioridad:(.*?)\]\s*\[Tipo:(.*?)\]\s*-\s*(.*)$/gm, // Spanish
+                /^\[Priorité:(.*?)\]\s*\[Type:(.*?)\]\s*-\s*(.*)$/gm, // French
+                /^\[Priorität:(.*?)\]\s*\[Typ:(.*?)\]\s*-\s*(.*)$/gm, // German
+                /^\[Priorità:(.*?)\]\s*\[Tipo:(.*?)\]\s*-\s*(.*)$/gm, // Italian
+                /^\[Prioridade:(.*?)\]\s*\[Tipo:(.*?)\]\s*-\s*(.*)$/gm, // Portuguese
+                /^\[(High|Medium|Low|Wysoki|Średni|Niski|Alto|Medio|Bajo|Élevé|Moyen|Bas|Hoch|Mittel|Niedrig|Basso|Prioridade)\]\s*\[(.*?)\]\s*-\s*(.*)$/gm,
+                /^(High|Medium|Low|Wysoki|Średni|Niski|Alto|Medio|Bajo|Élevé|Moyen|Bas|Hoch|Mittel|Niedrig|Basso)\s*Priority.*?-\s*(.*)$/gm,
             ];
 
             let suggestions = [];
@@ -159,9 +171,19 @@ ${cvContentText}`;
                 if (matches.length > 0) {
                     suggestions = matches.map((match) => {
                         if (match.length === 4) {
-                            return `[Priority:${match[1]}] [Type:${match[2]}] - ${match[3]}`;
+                            // Normalize the priority and type before creating the suggestion
+                            const normalized = this.normalizeAIParameters(
+                                match[1],
+                                match[2]
+                            );
+                            return `[Priority:${normalized.priority}] [Type:${normalized.type}] - ${match[3]}`;
                         } else if (match.length === 3) {
-                            return `[Priority:${match[1]}] [Type:General] - ${match[2]}`;
+                            // Normalize the priority before creating the suggestion
+                            const normalized = this.normalizeAIParameters(
+                                match[1],
+                                "General"
+                            );
+                            return `[Priority:${normalized.priority}] [Type:${normalized.type}] - ${match[2]}`;
                         }
                         return match[0];
                     });
@@ -229,6 +251,115 @@ ${cvContentText}`;
         }
     },
 
+    // Normalize priority and type parameters to English
+    normalizeAIParameters(priority, type) {
+        // Priority normalization mapping
+        const priorityMap = {
+            // English
+            high: "High",
+            medium: "Medium",
+            low: "Low",
+            // Polish
+            wysoki: "High",
+            wysokie: "High",
+            średni: "Medium",
+            średnie: "Medium",
+            niski: "Low",
+            niskie: "Low",
+            // Spanish
+            alto: "High",
+            alta: "High",
+            medio: "Medium",
+            media: "Medium",
+            bajo: "Low",
+            baja: "Low",
+            // French
+            élevé: "High",
+            élevée: "High",
+            moyen: "Medium",
+            moyenne: "Medium",
+            bas: "Low",
+            basse: "Low",
+            // German
+            hoch: "High",
+            mittel: "Medium",
+            niedrig: "Low",
+            // Italian
+            alto: "High",
+            alta: "High",
+            medio: "Medium",
+            media: "Medium",
+            basso: "Low",
+            bassa: "Low",
+            // Portuguese
+            alto: "High",
+            alta: "High",
+            médio: "Medium",
+            média: "Medium",
+            baixo: "Low",
+            baixa: "Low",
+        };
+
+        // Type normalization mapping
+        const typeMap = {
+            // English
+            content: "Content",
+            formatting: "Formatting",
+            skills: "Skills",
+            experience: "Experience",
+            general: "General",
+            // Polish
+            treść: "Content",
+            zawartość: "Content",
+            formatowanie: "Formatting",
+            umiejętności: "Skills",
+            doświadczenie: "Experience",
+            ogólne: "General",
+            // Spanish
+            contenido: "Content",
+            formato: "Formatting",
+            habilidades: "Skills",
+            experiencia: "Experience",
+            general: "General",
+            // French
+            contenu: "Content",
+            formatage: "Formatting",
+            compétences: "Skills",
+            expérience: "Experience",
+            général: "General",
+            // German
+            inhalt: "Content",
+            formatierung: "Formatting",
+            fähigkeiten: "Skills",
+            erfahrung: "Experience",
+            allgemein: "General",
+            // Italian
+            contenuto: "Content",
+            formattazione: "Formatting",
+            competenze: "Skills",
+            esperienza: "Experience",
+            generale: "General",
+            // Portuguese
+            conteúdo: "Content",
+            formatação: "Formatting",
+            habilidades: "Skills",
+            experiência: "Experience",
+            geral: "General",
+        };
+
+        // Normalize priority
+        const normalizedPriority =
+            priorityMap[priority.toLowerCase()] || "Medium";
+
+        // Normalize type
+        const normalizedType = typeMap[type.toLowerCase()] || "General";
+
+        return {
+            priority: normalizedPriority,
+            type: normalizedType,
+        };
+    },
+
     formatAISuggestionItem(suggestionText) {
         // Try to match the standard format
         let match = suggestionText.match(
@@ -261,6 +392,11 @@ ${cvContentText}`;
         priority = priority.trim();
         type = type.trim();
         text = text.trim();
+
+        // Normalize priority and type to English
+        const normalized = this.normalizeAIParameters(priority, type);
+        priority = normalized.priority;
+        type = normalized.type;
 
         // Set colors and icons based on priority and type
         let pColCls = "bg-secondary text-white";

@@ -42,6 +42,9 @@ Object.assign(CVGenius.prototype, {
         document
             .getElementById(`section-form-${newSection.id}`)
             ?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        // Auto-save after adding new section
+        this.autoSaveToLocalStorage();
     },
 
     getSectionTitle(type) {
@@ -499,6 +502,12 @@ Object.assign(CVGenius.prototype, {
                 "";
         }
 
+        // Auto-save to localStorage after a short delay
+        clearTimeout(this.autoSaveTimeout);
+        this.autoSaveTimeout = setTimeout(() => {
+            this.autoSaveToLocalStorage();
+        }, 1000);
+
         this.cvData.sections = this.sections;
         this.renderPreview();
     },
@@ -781,6 +790,9 @@ Object.assign(CVGenius.prototype, {
             this.reorderSectionForms();
             this.renderPreview();
             this.showNotification("Section duplicated!", "success");
+
+            // Auto-save after duplicating section
+            this.autoSaveToLocalStorage();
         }
     },
 
@@ -802,6 +814,9 @@ Object.assign(CVGenius.prototype, {
         this.reorderSectionForms();
         this.renderPreview();
         this.showNotification(`Section moved ${direction}!`, "success");
+
+        // Auto-save after moving section
+        this.autoSaveToLocalStorage();
     },
 
     reorderSectionForms() {
@@ -845,6 +860,9 @@ Object.assign(CVGenius.prototype, {
                 `Section "${section.title}" deleted.`,
                 "success"
             );
+
+            // Auto-save after removing section
+            this.autoSaveToLocalStorage();
         }
     },
 

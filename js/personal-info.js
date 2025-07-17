@@ -40,6 +40,11 @@ Object.assign(CVGenius.prototype, {
                 .filter(Boolean),
         };
         this.renderPreview();
+        // Auto-save to localStorage after a short delay
+        clearTimeout(this.autoSaveTimeout);
+        this.autoSaveTimeout = setTimeout(() => {
+            this.autoSaveToLocalStorage();
+        }, 1000);
     },
 
     loadPersonalInfo() {
@@ -164,5 +169,5 @@ Object.assign(CVGenius.prototype, {
         websiteElement
             .querySelector(".website-url")
             .addEventListener("input", () => this.updatePersonalInfo());
-    }
+    },
 });

@@ -41,7 +41,13 @@ class CVGenius {
     init() {
         this.initDarkMode();
         this.bindEvents();
-        this.loadPersonalInfo();
+
+        // Try to load from localStorage first
+        if (!this.loadFromLocalStorage()) {
+            // If no saved data, load default personal info
+            this.loadPersonalInfo();
+        }
+
         this.renderPreview();
         this.initKeyboardShortcuts();
         if (
@@ -100,6 +106,9 @@ class CVGenius {
         document
             .getElementById("printCV")
             ?.addEventListener("click", () => this.showExportModal());
+        document
+            .getElementById("clearCV")
+            ?.addEventListener("click", () => this.clearCV());
         document
             .getElementById("manageApiKey")
             ?.addEventListener("click", () => this.manageApiKey());
@@ -213,6 +222,165 @@ class CVGenius {
         });
     }
 
+    clearCV() {
+        this.showClearCVModal();
+    }
+
+    showClearCVModal() {
+        const existingModal = document.querySelector(".clear-cv-modal");
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const modalOverlay = document.createElement("div");
+        modalOverlay.className =
+            "clear-cv-modal position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center";
+        modalOverlay.style.cssText =
+            "background: rgba(0,0,0,0.5); z-index: 1053; backdrop-filter: blur(3px);";
+
+        const modalContent = document.createElement("div");
+        modalContent.className = "bg-body text-body rounded shadow-lg p-4 mx-3";
+        modalContent.style.cssText =
+            "max-width: 500px; width: 100%; border: 1px solid var(--bs-border-color, #dee2e6);";
+
+        modalContent.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0 text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Clear CV</h4>
+                <button type="button" class="btn-close" onclick="this.closest('.clear-cv-modal').remove()"></button>
+            </div>
+            <div class="alert alert-warning mb-4">
+                <i class="fas fa-warning me-2"></i>
+                <strong>Warning:</strong> This action will permanently delete all your CV data including personal information, sections, and content.
+            </div>
+            <p class="text-muted mb-4">Before proceeding, you may want to save your current CV as a backup.</p>
+            
+            <div class="d-grid gap-2 mb-4">
+                <button type="button" class="btn btn-outline-primary" onclick="cvGenius.saveBeforeClear()">
+                    <i class="fas fa-download me-2"></i>Save CV as JSON First
+                    <small class="d-block text-muted">Download a backup before clearing</small>
+                </button>
+            </div>
+
+            <div class="border-top pt-3">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="confirmClearCheck">
+                    <label class="form-check-label" for="confirmClearCheck">
+                        I understand that this action cannot be undone and all CV data will be permanently deleted.
+                    </label>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-danger" id="confirmClearBtn" disabled onclick="cvGenius.performClearCV()">
+                        <i class="fas fa-eraser me-2"></i>Clear CV Permanently
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="this.closest('.clear-cv-modal').remove();">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `;
+
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+
+        // Add event listener for checkbox
+        const checkbox = modalContent.querySelector("#confirmClearCheck");
+        const confirmBtn = modalContent.querySelector("#confirmClearBtn");
+
+        checkbox.addEventListener("change", () => {
+            confirmBtn.disabled = !checkbox.checked;
+        });
+
+        modalOverlay.addEventListener("click", (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.remove();
+            }
+        });
+    }
+
+    saveBeforeClear() {
+        // Use the existing export functionality
+        this.exportCVAsFile();
+        this.showNotification(
+            "CV saved! You can now safely clear your data.",
+            "success"
+        );
+    }
+
+    performClearCV() {
+        // Double confirmation with native confirm dialog
+        if (
+            confirm(
+                "Are you absolutely sure you want to clear all CV data? This is your final chance to cancel."
+            )
+        ) {
+            // Close the modal first
+            const modal = document.querySelector(".clear-cv-modal");
+            if (modal) {
+                modal.remove();
+            }
+
+            // Clear personal info
+            this.cvData.personalInfo = {};
+
+            // Clear all form fields
+            const personalFields = [
+                "fullName",
+                "jobTitle",
+                "email",
+                "phone",
+                "location",
+            ];
+            personalFields.forEach((field) => {
+                const element = document.getElementById(field);
+                if (element) {
+                    element.value = "";
+                }
+            });
+
+            // Clear websites container
+            const websiteContainer =
+                document.getElementById("websiteContainer");
+            if (websiteContainer) {
+                websiteContainer.innerHTML = "";
+            }
+
+            // Clear all sections
+            this.sections = [];
+            this.cvData.sections = [];
+
+            // Remove all section forms
+            const formContainer = document.getElementById("formContainer");
+            if (formContainer) {
+                const sectionForms =
+                    formContainer.querySelectorAll(".form-section");
+                sectionForms.forEach((form) => form.remove());
+            }
+
+            // Reset language to default
+            this.language = "English";
+            this.cvData.personalInfo.language = "English";
+
+            // Update language selector
+            const languageDisplayText = document.getElementById(
+                "languageDisplayText"
+            );
+            if (languageDisplayText) {
+                languageDisplayText.textContent = "English";
+                languageDisplayText.className = "multi-select-text selected";
+            }
+
+            // Re-render the preview
+            this.renderPreview();
+
+            // Auto-save the cleared state
+            this.autoSaveToLocalStorage();
+
+            // Show success notification
+            this.showNotification("CV cleared successfully!", "success");
+        }
+    }
+
     closeAllModals() {
         document.getElementById("aiSuggestionPopup")?.classList.add("d-none");
         if (this.bulkModal) this.closeBulkActions();
@@ -221,6 +389,10 @@ class CVGenius {
             .querySelectorAll(".notification-toast")
             .forEach((p) => p.classList.add("d-none"));
         document.querySelector(".api-key-modal")?.remove();
+        document.querySelector(".clear-cv-modal")?.remove();
+        document.querySelector(".save-modal")?.remove();
+        document.querySelector(".load-modal")?.remove();
+        document.querySelector(".export-modal")?.remove();
         if (this.sectionSelectVisible) this.handleAddSectionClick();
     }
 }

@@ -4,7 +4,7 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>CV Genius - Professional CV Maker</title>
-        <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="favicon.png" type="image/x-icon" />
         <link
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
             rel="stylesheet"
@@ -71,7 +71,14 @@
 
                     <div class="position-relative">
                         <h1 class="display-3 fw-bold mb-4 animate-fade-in">
-                            <i class="fas fa-file-alt me-3"></i>CV Genius
+                            <img
+                                src="favicon.svg"
+                                alt="CV Genius Logo"
+                                width="48"
+                                height="48"
+                                class="me-3"
+                                style="vertical-align: inherit"
+                            />CV Genius
                         </h1>
                         <p
                             class="lead mb-4 animate-fade-in"
@@ -80,6 +87,12 @@
                             Build your professional CV with AI-powered
                             suggestions and beautiful templates
                         </p>
+                        <div class="d-flex justify-content-center mb-3">
+                            <small class="text-light opacity-75">
+                                <i class="fas fa-save me-1"></i>Auto-save
+                                enabled
+                            </small>
+                        </div>
                         <div
                             class="d-flex flex-wrap justify-content-center gap-2 animate-fade-in"
                             style="animation-delay: 0.4s"
@@ -372,18 +385,18 @@
                                             class="btn btn-outline-success btn-custom d-flex align-items-center justify-content-center"
                                         >
                                             <i
-                                                class="fas fa-save me-2 text-success"
+                                                class="fas fa-download me-2 text-success"
                                             ></i
-                                            >Save CV
+                                            >Export CV
                                         </button>
                                         <button
                                             id="loadCV"
                                             class="btn btn-outline-info btn-custom d-flex align-items-center justify-content-center"
                                         >
                                             <i
-                                                class="fas fa-upload me-2 text-info"
+                                                class="fas fa-file-import me-2 text-info"
                                             ></i
-                                            >Load CV
+                                            >Import CV
                                         </button>
                                         <button
                                             id="printCV"
@@ -393,6 +406,15 @@
                                                 class="fas fa-print me-2 text-secondary"
                                             ></i
                                             >Print / Export PDF
+                                        </button>
+                                        <button
+                                            id="clearCV"
+                                            class="btn btn-outline-danger btn-custom d-flex align-items-center justify-content-center"
+                                        >
+                                            <i
+                                                class="fas fa-eraser me-2 text-danger"
+                                            ></i
+                                            >Clear CV
                                         </button>
                                         <button
                                             id="manageApiKey"
@@ -409,6 +431,17 @@
                                         >
                                             <i class="fas fa-magic me-2"></i>Get
                                             AI Suggestions
+                                        </button>
+                                        <button
+                                            id="helpBtn"
+                                            class="btn btn-outline-info btn-custom d-flex align-items-center justify-content-center"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#helpModal"
+                                        >
+                                            <i
+                                                class="fas fa-question-circle me-2 text-info"
+                                            ></i
+                                            >Help & Instructions
                                         </button>
                                     </div>
                                 </div>
@@ -919,5 +952,543 @@
                 selectLanguage(savedLanguage);
             });
         </script>
+
+        <!-- Help Modal -->
+        <div
+            class="modal fade"
+            id="helpModal"
+            tabindex="-1"
+            aria-labelledby="helpModalLabel"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5
+                            class="modal-title d-flex align-items-center"
+                            id="helpModalLabel"
+                        >
+                            <i class="fas fa-question-circle me-2"></i>
+                            CV Genius - Help & Instructions
+                        </h5>
+                        <button
+                            type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"
+                        ></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Quick Start Section -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="fas fa-rocket me-2"></i>Quick Start
+                                Guide
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div
+                                        class="card h-100 border-primary border-opacity-25"
+                                    >
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary">
+                                                <i class="fas fa-user me-2"></i
+                                                >1. Personal Information
+                                            </h6>
+                                            <p class="card-text small">
+                                                Fill in your basic details like
+                                                name, email, phone, and location
+                                                in the left panel.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div
+                                        class="card h-100 border-success border-opacity-25"
+                                    >
+                                        <div class="card-body">
+                                            <h6 class="card-title text-success">
+                                                <i class="fas fa-plus me-2"></i
+                                                >2. Add Sections
+                                            </h6>
+                                            <p class="card-text small">
+                                                Click "Add New Section" to
+                                                include experience, education,
+                                                skills, and more.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Features Section -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="fas fa-star me-2"></i>Key Features
+                            </h6>
+                            <div class="accordion" id="featuresAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button
+                                            class="accordion-button collapsed"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#aiFeatures"
+                                        >
+                                            <i
+                                                class="fas fa-magic me-2 text-purple"
+                                            ></i
+                                            >AI-Powered Suggestions
+                                        </button>
+                                    </h2>
+                                    <div
+                                        id="aiFeatures"
+                                        class="accordion-collapse collapse"
+                                        data-bs-parent="#featuresAccordion"
+                                    >
+                                        <div class="accordion-body">
+                                            <ul class="list-unstyled">
+                                                <li>
+                                                    <i
+                                                        class="fas fa-check text-success me-2"
+                                                    ></i
+                                                    >Get personalized CV
+                                                    improvement suggestions
+                                                </li>
+                                                <li>
+                                                    <i
+                                                        class="fas fa-check text-success me-2"
+                                                    ></i
+                                                    >Enhance your summary and
+                                                    job descriptions
+                                                </li>
+                                                <li>
+                                                    <i
+                                                        class="fas fa-check text-success me-2"
+                                                    ></i
+                                                    >Optimize keywords for your
+                                                    industry
+                                                </li>
+                                                <li>
+                                                    <i
+                                                        class="fas fa-check text-success me-2"
+                                                    ></i
+                                                    >Improve skills section with
+                                                    relevant suggestions
+                                                </li>
+                                            </ul>
+                                            <div class="alert alert-info small">
+                                                <i
+                                                    class="fas fa-info-circle me-2"
+                                                ></i>
+                                                <strong>Note:</strong> Configure
+                                                your API key in settings for AI
+                                                features.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button
+                                            class="accordion-button collapsed"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#exportFeatures"
+                                        >
+                                            <i
+                                                class="fas fa-download me-2 text-info"
+                                            ></i
+                                            >Export & Print Options
+                                        </button>
+                                    </h2>
+                                    <div
+                                        id="exportFeatures"
+                                        class="accordion-collapse collapse"
+                                        data-bs-parent="#featuresAccordion"
+                                    >
+                                        <div class="accordion-body">
+                                            <ul class="list-unstyled">
+                                                <li>
+                                                    <i
+                                                        class="fas fa-file-pdf text-danger me-2"
+                                                    ></i
+                                                    >Export as PDF
+                                                </li>
+                                                <li>
+                                                    <i
+                                                        class="fas fa-print text-secondary me-2"
+                                                    ></i
+                                                    >Print-ready format
+                                                </li>
+                                                <li>
+                                                    <i
+                                                        class="fas fa-file-code text-warning me-2"
+                                                    ></i
+                                                    >Save as JSON for backup
+                                                </li>
+                                                <li>
+                                                    <i
+                                                        class="fas fa-file-import text-success me-2"
+                                                    ></i
+                                                    >Import existing CV data
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button
+                                            class="accordion-button collapsed"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#customization"
+                                        >
+                                            <i
+                                                class="fas fa-palette me-2 text-warning"
+                                            ></i
+                                            >Customization Options
+                                        </button>
+                                    </h2>
+                                    <div
+                                        id="customization"
+                                        class="accordion-collapse collapse"
+                                        data-bs-parent="#featuresAccordion"
+                                    >
+                                        <div class="accordion-body">
+                                            <ul class="list-unstyled">
+                                                <li>
+                                                    <i
+                                                        class="fas fa-globe me-2 text-primary"
+                                                    ></i
+                                                    >Multi-language support (18+
+                                                    languages)
+                                                </li>
+                                                <li>
+                                                    <i
+                                                        class="fas fa-moon me-2 text-dark"
+                                                    ></i
+                                                    >Dark/Light theme toggle
+                                                </li>
+                                                <li>
+                                                    <i
+                                                        class="fas fa-sort me-2 text-secondary"
+                                                    ></i
+                                                    >Reorder sections easily
+                                                </li>
+                                                <li>
+                                                    <i
+                                                        class="fas fa-plus-circle me-2 text-success"
+                                                    ></i
+                                                    >Add custom sections
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step-by-step Instructions -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="fas fa-list-ol me-2"></i>Step-by-Step
+                                Instructions
+                            </h6>
+                            <div class="timeline">
+                                <div class="timeline-item">
+                                    <div
+                                        class="timeline-marker bg-primary"
+                                    ></div>
+                                    <div class="timeline-content">
+                                        <h6 class="fw-semibold">
+                                            Fill Personal Information
+                                        </h6>
+                                        <p class="small text-muted mb-0">
+                                            Enter your full name, job title,
+                                            contact details, and professional
+                                            websites.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div
+                                        class="timeline-marker bg-success"
+                                    ></div>
+                                    <div class="timeline-content">
+                                        <h6 class="fw-semibold">
+                                            Add CV Sections
+                                        </h6>
+                                        <p class="small text-muted mb-0">
+                                            Click "Add New Section" and choose
+                                            from Summary, Experience, Education,
+                                            Skills, or Custom sections.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-info"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="fw-semibold">
+                                            Use AI Suggestions
+                                        </h6>
+                                        <p class="small text-muted mb-0">
+                                            Click "Get AI Suggestions" to
+                                            receive personalized recommendations
+                                            for improvement.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div
+                                        class="timeline-marker bg-warning"
+                                    ></div>
+                                    <div class="timeline-content">
+                                        <h6 class="fw-semibold">
+                                            Customize & Review
+                                        </h6>
+                                        <p class="small text-muted mb-0">
+                                            Reorder sections, adjust content,
+                                            and review your CV in real-time
+                                            preview.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="timeline-item">
+                                    <div
+                                        class="timeline-marker bg-danger"
+                                    ></div>
+                                    <div class="timeline-content">
+                                        <h6 class="fw-semibold">
+                                            Export Your CV
+                                        </h6>
+                                        <p class="small text-muted mb-0">
+                                            Use "Export CV" to save as JSON or
+                                            "Print/Export PDF" for final
+                                            document.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tips Section -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="fas fa-lightbulb me-2"></i>Pro Tips
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="alert alert-success">
+                                        <h6 class="alert-heading fw-semibold">
+                                            <i class="fas fa-save me-2"></i
+                                            >Auto-Save
+                                        </h6>
+                                        <p class="mb-0 small">
+                                            Your CV data is automatically saved
+                                            to your browser's local storage as
+                                            you type.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <h6 class="alert-heading fw-semibold">
+                                            <i
+                                                class="fas fa-mobile-alt me-2"
+                                            ></i
+                                            >Mobile Friendly
+                                        </h6>
+                                        <p class="mb-0 small">
+                                            CV Genius works perfectly on mobile
+                                            devices and tablets.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-warning">
+                                        <h6 class="alert-heading fw-semibold">
+                                            <i
+                                                class="fas fa-shield-alt me-2"
+                                            ></i
+                                            >Privacy
+                                        </h6>
+                                        <p class="mb-0 small">
+                                            All your data stays in your browser
+                                            - nothing is sent to external
+                                            servers.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-primary">
+                                        <h6 class="alert-heading fw-semibold">
+                                            <i class="fas fa-keyboard me-2"></i
+                                            >Shortcuts
+                                        </h6>
+                                        <p class="mb-0 small">
+                                            Use Ctrl+P to quickly print your CV,
+                                            or Ctrl+S to export.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Troubleshooting -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="fas fa-wrench me-2"></i
+                                >Troubleshooting
+                            </h6>
+                            <div
+                                class="accordion"
+                                id="troubleshootingAccordion"
+                            >
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button
+                                            class="accordion-button collapsed"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#aiNotWorking"
+                                        >
+                                            AI suggestions not working?
+                                        </button>
+                                    </h2>
+                                    <div
+                                        id="aiNotWorking"
+                                        class="accordion-collapse collapse"
+                                        data-bs-parent="#troubleshootingAccordion"
+                                    >
+                                        <div class="accordion-body">
+                                            <ol class="small">
+                                                <li>
+                                                    Check if you've configured
+                                                    your API key in "API Key
+                                                    Settings"
+                                                </li>
+                                                <li>
+                                                    Ensure you have an active
+                                                    internet connection
+                                                </li>
+                                                <li>
+                                                    Try refreshing the page and
+                                                    generating suggestions again
+                                                </li>
+                                                <li>
+                                                    Make sure your CV has enough
+                                                    content for AI analysis
+                                                </li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button
+                                            class="accordion-button collapsed"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#dataLost"
+                                        >
+                                            Lost my CV data?
+                                        </button>
+                                    </h2>
+                                    <div
+                                        id="dataLost"
+                                        class="accordion-collapse collapse"
+                                        data-bs-parent="#troubleshootingAccordion"
+                                    >
+                                        <div class="accordion-body">
+                                            <ul class="small">
+                                                <li>
+                                                    Check if you're using the
+                                                    same browser and device
+                                                </li>
+                                                <li>
+                                                    Look for exported JSON files
+                                                    in your downloads
+                                                </li>
+                                                <li>
+                                                    Try refreshing the page -
+                                                    auto-save might recover your
+                                                    data
+                                                </li>
+                                                <li>
+                                                    Clear browser cache only as
+                                                    a last resort
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button
+                                            class="accordion-button collapsed"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#printIssues"
+                                        >
+                                            Print/PDF export issues?
+                                        </button>
+                                    </h2>
+                                    <div
+                                        id="printIssues"
+                                        class="accordion-collapse collapse"
+                                        data-bs-parent="#troubleshootingAccordion"
+                                    >
+                                        <div class="accordion-body">
+                                            <ul class="small">
+                                                <li>
+                                                    Try using Chrome or Firefox
+                                                    for best PDF export results
+                                                </li>
+                                                <li>
+                                                    Check your printer/PDF
+                                                    settings for margins and
+                                                    page size
+                                                </li>
+                                                <li>
+                                                    Ensure your CV content fits
+                                                    within reasonable page
+                                                    limits
+                                                </li>
+                                                <li>
+                                                    Try the browser's built-in
+                                                    print function (Ctrl+P) as
+                                                    alternative
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <div
+                            class="d-flex justify-content-between align-items-center w-100"
+                        >
+                            <small class="text-muted">
+                                <i class="fas fa-heart text-danger me-1"></i>
+                                Made with love by Michał Dakowicz
+                            </small>
+                            <button
+                                type="button"
+                                class="btn btn-primary"
+                                data-bs-dismiss="modal"
+                            >
+                                <i class="fas fa-check me-2"></i>Got it!
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
