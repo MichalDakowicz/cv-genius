@@ -459,10 +459,64 @@ body {
 
 @media (max-width: 768px) {
     .theme-toggle {
-        top: 1rem;
-        right: 1rem;
+        background-color: #0E67DC;
         width: 2.5rem;
         height: 2.5rem;
+    }
+}
+
+/* Notification toast styles */
+.notification-toast {
+    font-size: 0.875rem;
+    border: none;
+    backdrop-filter: blur(10px);
+    max-width: 300px;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.notification-toast.alert-primary {
+    background: rgba(13, 110, 253, 0.95);
+    color: white;
+}
+
+.notification-toast.alert-success {
+    background: rgba(25, 135, 84, 0.95);
+    color: white;
+}
+
+.notification-toast.alert-warning {
+    background: rgba(255, 193, 7, 0.95);
+    color: #212529;
+}
+
+.notification-toast.alert-danger {
+    background: rgba(220, 53, 69, 0.95);
+    color: white;
+}
+
+.notification-toast .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.notification-toast.alert-warning .btn-close {
+    filter: brightness(0) invert(0);
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .notification-toast {
+        max-width: 200px;
+        font-size: 0.8rem;
     }
 }
 

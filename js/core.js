@@ -175,7 +175,7 @@ class CVGenius {
                     localStorage.setItem("cvg_ai_language", e.target.value);
                 }
                 if (aiLanguageIndicator) {
-                    aiLanguageIndicator.textContent = `🌐 ${e.target.value}`;
+                    aiLanguageIndicator.innerHTML = `<i class="fas fa-globe"></i> ${e.target.value}`;
                 }
 
                 this.showNotification(

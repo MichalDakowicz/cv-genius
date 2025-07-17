@@ -200,6 +200,329 @@ Object.assign(CVGenius.prototype, {
                             }
                             sectionContentHTML += `</div>`;
                         });
+                    } else if (
+                        section.type === "projects" &&
+                        Array.isArray(section.items)
+                    ) {
+                        section.items.forEach((item) => {
+                            const hasContent = Object.entries(item).some(
+                                ([key, value]) => {
+                                    return (
+                                        key !== "id" &&
+                                        value &&
+                                        (typeof value === "string"
+                                            ? value.trim() !== ""
+                                            : true)
+                                    );
+                                }
+                            );
+
+                            if (!hasContent) return;
+
+                            sectionContentHTML += `<div class="mb-4 bg bg-opacity-50 p-3 rounded cv-entry">${
+                                item.name
+                                    ? `<h5 class="fw-semibold text">${item.name}</h5>`
+                                    : ""
+                            }${
+                                item.technologies
+                                    ? `<p class="text-primary fw-medium mb-1">${item.technologies}</p>`
+                                    : ""
+                            }${
+                                item.duration
+                                    ? `<p class="small text-muted mb-2">${item.duration}</p>`
+                                    : ""
+                            }${
+                                item.description
+                                    ? `<div class="text-secondary lh-base mb-2">${this.formatTextToHtml(
+                                          item.description
+                                      )}</div>`
+                                    : ""
+                            }${
+                                item.url || item.github
+                                    ? `<div class="d-flex gap-3 small">${
+                                          item.url
+                                              ? `<a href="${this.formatURL(
+                                                    item.url
+                                                )}" class="text-primary text-decoration-none" target="_blank"><i class="fas fa-external-link-alt me-1"></i>${this.formatURL(
+                                                    item.url
+                                                )}</a>`
+                                              : ""
+                                      }${
+                                          item.github
+                                              ? `<a href="${this.formatURL(
+                                                    item.github
+                                                )}" class="text-primary text-decoration-none" target="_blank"><i class="fab fa-github me-1"></i>${this.formatURL(
+                                                    item.github
+                                                )}</a>`
+                                              : ""
+                                      }</div>`
+                                    : ""
+                            }</div>`;
+                        });
+                    } else if (
+                        section.type === "publications" &&
+                        Array.isArray(section.items)
+                    ) {
+                        section.items.forEach((item) => {
+                            const hasContent = Object.entries(item).some(
+                                ([key, value]) => {
+                                    return (
+                                        key !== "id" &&
+                                        value &&
+                                        (typeof value === "string"
+                                            ? value.trim() !== ""
+                                            : true)
+                                    );
+                                }
+                            );
+
+                            if (!hasContent) return;
+
+                            sectionContentHTML += `<div class="mb-4 bg bg-opacity-50 p-3 rounded cv-entry">${
+                                item.title
+                                    ? `<h5 class="fw-semibold text">${item.title}</h5>`
+                                    : ""
+                            }${
+                                item.authors
+                                    ? `<p class="text-primary fw-medium mb-1">${item.authors}</p>`
+                                    : ""
+                            }${
+                                item.publication
+                                    ? `<p class="text-secondary mb-1">${
+                                          item.publication
+                                      }${
+                                          item.year ? ` (${item.year})` : ""
+                                      }</p>`
+                                    : ""
+                            }${
+                                item.doi || item.url
+                                    ? `<div class="d-flex gap-3 small">${
+                                          item.doi
+                                              ? `<span class="text-muted">DOI: ${item.doi}</span>`
+                                              : ""
+                                      }${
+                                          item.url
+                                              ? `<a href="${this.formatURL(
+                                                    item.url
+                                                )}" class="text-primary text-decoration-none" target="_blank"><i class="fas fa-external-link-alt me-1"></i>View</a>`
+                                              : ""
+                                      }</div>`
+                                    : ""
+                            }</div>`;
+                        });
+                    } else if (
+                        section.type === "languages" &&
+                        Array.isArray(section.items)
+                    ) {
+                        section.items.forEach((item) => {
+                            if (!item.language) return;
+
+                            sectionContentHTML += `<div class="mb-3 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-medium">${
+                                        item.language
+                                    }</span>
+                                    ${
+                                        item.certification
+                                            ? `<span class="text-muted small ms-2">(${item.certification})</span>`
+                                            : ""
+                                    }
+                                </div>
+                                ${
+                                    item.proficiency
+                                        ? `<span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 rounded-pill">${item.proficiency}</span>`
+                                        : ""
+                                }
+                            </div>`;
+                        });
+                    } else if (
+                        section.type === "certifications" &&
+                        Array.isArray(section.items)
+                    ) {
+                        section.items.forEach((item) => {
+                            const hasContent = Object.entries(item).some(
+                                ([key, value]) => {
+                                    return (
+                                        key !== "id" &&
+                                        value &&
+                                        (typeof value === "string"
+                                            ? value.trim() !== ""
+                                            : true)
+                                    );
+                                }
+                            );
+
+                            if (!hasContent) return;
+
+                            sectionContentHTML += `<div class="mb-4 bg bg-opacity-50 p-3 rounded cv-entry">${
+                                item.name
+                                    ? `<h5 class="fw-semibold text">${item.name}</h5>`
+                                    : ""
+                            }${
+                                item.issuer
+                                    ? `<p class="text-primary fw-medium mb-1">${item.issuer}</p>`
+                                    : ""
+                            }${
+                                item.date || item.expiryDate
+                                    ? `<p class="small text-muted mb-2">${
+                                          item.date || ""
+                                      }${
+                                          item.date && item.expiryDate
+                                              ? " - "
+                                              : ""
+                                      }${
+                                          item.expiryDate
+                                              ? `Expires: ${item.expiryDate}`
+                                              : ""
+                                      }</p>`
+                                    : ""
+                            }${
+                                item.credentialId
+                                    ? `<p class="small text-muted mb-2">Credential ID: ${item.credentialId}</p>`
+                                    : ""
+                            }${
+                                item.url
+                                    ? `<div class="small"><a href="${this.formatURL(
+                                          item.url
+                                      )}" class="text-primary text-decoration-none" target="_blank"><i class="fas fa-external-link-alt me-1"></i>Verify</a></div>`
+                                    : ""
+                            }</div>`;
+                        });
+                    } else if (
+                        section.type === "awards" &&
+                        Array.isArray(section.items)
+                    ) {
+                        section.items.forEach((item) => {
+                            const hasContent = Object.entries(item).some(
+                                ([key, value]) => {
+                                    return (
+                                        key !== "id" &&
+                                        value &&
+                                        (typeof value === "string"
+                                            ? value.trim() !== ""
+                                            : true)
+                                    );
+                                }
+                            );
+
+                            if (!hasContent) return;
+
+                            sectionContentHTML += `<div class="mb-4 bg bg-opacity-50 p-3 rounded cv-entry">${
+                                item.name
+                                    ? `<h5 class="fw-semibold text">${item.name}</h5>`
+                                    : ""
+                            }${
+                                item.issuer
+                                    ? `<p class="text-primary fw-medium mb-1">${item.issuer}</p>`
+                                    : ""
+                            }${
+                                item.date
+                                    ? `<p class="small text-muted mb-2">${item.date}</p>`
+                                    : ""
+                            }${
+                                item.description
+                                    ? `<div class="text-secondary lh-base">${this.formatTextToHtml(
+                                          item.description
+                                      )}</div>`
+                                    : ""
+                            }</div>`;
+                        });
+                    } else if (
+                        section.type === "volunteer" &&
+                        Array.isArray(section.items)
+                    ) {
+                        section.items.forEach((item) => {
+                            const hasContent = Object.entries(item).some(
+                                ([key, value]) => {
+                                    return (
+                                        key !== "id" &&
+                                        value &&
+                                        (typeof value === "string"
+                                            ? value.trim() !== ""
+                                            : true)
+                                    );
+                                }
+                            );
+
+                            if (!hasContent) return;
+
+                            sectionContentHTML += `<div class="mb-4 bg bg-opacity-50 p-3 rounded cv-entry">${
+                                item.role
+                                    ? `<h5 class="fw-semibold text">${item.role}</h5>`
+                                    : ""
+                            }${
+                                item.organization
+                                    ? `<p class="text-primary fw-medium mb-1">${
+                                          item.organization
+                                      }${
+                                          item.location
+                                              ? ` <span class="text-muted fw-normal small">- ${item.location}</span>`
+                                              : ""
+                                      }</p>`
+                                    : ""
+                            }${
+                                item.duration
+                                    ? `<p class="small text-muted mb-2">${item.duration}</p>`
+                                    : ""
+                            }${
+                                item.description
+                                    ? `<div class="text-secondary lh-base">${this.formatTextToHtml(
+                                          item.description
+                                      )}</div>`
+                                    : ""
+                            }</div>`;
+                        });
+                    } else if (
+                        section.type === "references" &&
+                        Array.isArray(section.items)
+                    ) {
+                        section.items.forEach((item) => {
+                            const hasContent = Object.entries(item).some(
+                                ([key, value]) => {
+                                    return (
+                                        key !== "id" &&
+                                        value &&
+                                        (typeof value === "string"
+                                            ? value.trim() !== ""
+                                            : true)
+                                    );
+                                }
+                            );
+
+                            if (!hasContent) return;
+
+                            sectionContentHTML += `<div class="mb-4 bg bg-opacity-50 p-3 rounded cv-entry">${
+                                item.name
+                                    ? `<h5 class="fw-semibold text">${item.name}</h5>`
+                                    : ""
+                            }${
+                                item.title || item.company
+                                    ? `<p class="text-primary fw-medium mb-1">${
+                                          item.title || ""
+                                      }${
+                                          item.title && item.company
+                                              ? " at "
+                                              : ""
+                                      }${item.company || ""}</p>`
+                                    : ""
+                            }${
+                                item.relationship
+                                    ? `<p class="small text-muted mb-2">${item.relationship}</p>`
+                                    : ""
+                            }${
+                                item.email || item.phone
+                                    ? `<div class="d-flex gap-3 small">${
+                                          item.email
+                                              ? `<span class="text-muted"><i class="fas fa-envelope me-1"></i>${item.email}</span>`
+                                              : ""
+                                      }${
+                                          item.phone
+                                              ? `<span class="text-muted"><i class="fas fa-phone me-1"></i>${item.phone}</span>`
+                                              : ""
+                                      }</div>`
+                                    : ""
+                            }</div>`;
+                        });
                     }
                 }
                 sectionDiv.innerHTML = sectionContentHTML;
@@ -214,6 +537,13 @@ Object.assign(CVGenius.prototype, {
                 experience: "border-success",
                 education: "border-info",
                 skills: "border-warning",
+                projects: "border-primary",
+                publications: "border-secondary",
+                languages: "border-dark",
+                certifications: "border-success",
+                awards: "border-warning",
+                volunteer: "border-info",
+                references: "border-secondary",
                 custom: "border-danger",
             }[type] || "border-primary"
         );
@@ -221,9 +551,13 @@ Object.assign(CVGenius.prototype, {
 
     formatURL(url) {
         if (!url) return "#";
-        return !url.startsWith("http://") && !url.startsWith("https://")
-            ? "https://" + url
-            : url;
+        if (url.startsWith("http://")) {
+            return url.slice(7);
+        }
+        if (url.startsWith("https://")) {
+            return url.slice(8);
+        }
+        return url;
     },
 
     formatURLToDisplay(url) {
@@ -263,5 +597,5 @@ Object.assign(CVGenius.prototype, {
         });
         if (inList) html += "</ul>";
         return html || `<p>${esc(text).replace(/\n/g, "<br>")}</p>`;
-    }
+    },
 });

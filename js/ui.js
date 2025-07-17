@@ -187,18 +187,20 @@ Object.assign(CVGenius.prototype, {
                 : "danger"
         } alert-dismissible fade show position-fixed`;
 
-        // Position next to the dark mode button
+        // Position next to the dark mode button (to the left of it)
         const isMobile = window.innerWidth <= 768;
-        const rightOffset = isMobile ? "4.5rem" : "5.5rem"; // Account for button width + spacing
+        const rightOffset = isMobile ? "4rem" : "6rem"; // Mobile: 2.5rem button + 1rem margin + 0.5rem spacing = 4rem; Desktop: 3rem button + 1.5rem margin + 1.5rem spacing = 6rem
         const topOffset = isMobile ? "1rem" : "1.5rem"; // Match button position
 
         notification.style.cssText = `
             top: ${topOffset}; 
             right: ${rightOffset}; 
-            z-index: 1100; 
-            max-width: ${isMobile ? "250px" : "350px"};
-            transform: translateX(0);
+            z-index: 1105; 
+            max-width: ${isMobile ? "200px" : "300px"};
+            transform: translateX(100%);
             transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 0.5rem;
         `;
 
         notification.innerHTML = `
@@ -224,5 +226,5 @@ Object.assign(CVGenius.prototype, {
                 }, 150);
             }
         }, duration);
-    }
+    },
 });

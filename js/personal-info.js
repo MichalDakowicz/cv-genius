@@ -58,12 +58,12 @@ Object.assign(CVGenius.prototype, {
         const websiteHtml = `
             <div class="input-group mb-2 website-field" data-website-id="${websiteId}">
                 <select class="form-select form-select-sm website-type">
-                    <option value="portfolio">🌐 Portfolio</option>
-                    <option value="linkedin">💼 LinkedIn</option>
-                    <option value="github">💻 GitHub</option>
-                    <option value="instagram">📷 Instagram</option>
-                    <option value="twitter">🐦 Twitter</option>
-                    <option value="custom">🔗 Custom</option>
+                    <option value="portfolio"><i class="fas fa-globe"></i> Portfolio</option>
+                    <option value="linkedin"><i class="fab fa-linkedin"></i> LinkedIn</option>
+                    <option value="github"><i class="fab fa-github"></i> GitHub</option>
+                    <option value="instagram"><i class="fab fa-instagram"></i> Instagram</option>
+                    <option value="twitter"><i class="fab fa-twitter"></i> Twitter</option>
+                    <option value="custom"><i class="fas fa-link"></i> Custom</option>
                 </select>
                 <input type="url" class="form-control form-control-sm website-url" placeholder="https://example.com">
                 <button type="button" class="btn btn-outline-danger btn-sm remove-website">
@@ -107,13 +107,13 @@ Object.assign(CVGenius.prototype, {
         } = websiteData;
 
         const typeLabels = {
-            portfolio: "🌐 Portfolio",
-            linkedin: "💼 LinkedIn",
-            github: "💻 GitHub",
-            instagram: "📷 Instagram",
-            twitter: "🐦 Twitter",
-            personal: "👤 Personal Website",
-            custom: "🔗 Custom",
+            portfolio: '<i class="fas fa-globe"></i> Portfolio',
+            linkedin: '<i class="fab fa-linkedin"></i> LinkedIn',
+            github: '<i class="fab fa-github"></i> GitHub',
+            instagram: '<i class="fab fa-instagram"></i> Instagram',
+            twitter: '<i class="fab fa-twitter"></i> Twitter',
+            personal: '<i class="fas fa-user"></i> Personal Website',
+            custom: '<i class="fas fa-link"></i> Custom',
         };
 
         const websiteHtml = `
@@ -121,25 +121,25 @@ Object.assign(CVGenius.prototype, {
                 <select class="form-select form-select-sm website-type">
                     <option value="portfolio" ${
                         type === "portfolio" ? "selected" : ""
-                    }>🌐 Portfolio</option>
+                    }><i class="fas fa-globe"></i> Portfolio</option>
                     <option value="linkedin" ${
                         type === "linkedin" ? "selected" : ""
-                    }>💼 LinkedIn</option>
+                    }><i class="fab fa-linkedin"></i> LinkedIn</option>
                     <option value="github" ${
                         type === "github" ? "selected" : ""
-                    }>💻 GitHub</option>
+                    }><i class="fab fa-github"></i> GitHub</option>
                     <option value="instagram" ${
                         type === "instagram" ? "selected" : ""
-                    }>📷 Instagram</option>
+                    }><i class="fab fa-instagram"></i> Instagram</option>
                     <option value="twitter" ${
                         type === "twitter" ? "selected" : ""
-                    }>🐦 Twitter</option>
+                    }><i class="fab fa-twitter"></i> Twitter</option>
                     <option value="personal" ${
                         type === "personal" ? "selected" : ""
-                    }>👤 Personal Website</option>
+                    }><i class="fas fa-user"></i> Personal Website</option>
                     <option value="custom" ${
                         type === "custom" ? "selected" : ""
-                    }>🔗 Custom</option>
+                    }><i class="fas fa-link"></i> Custom</option>
                 </select>
                 <input type="url" class="form-control form-control-sm website-url" value="${url}" placeholder="https://example.com">
                 <button type="button" class="btn btn-outline-danger btn-sm remove-website">

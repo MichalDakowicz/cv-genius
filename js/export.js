@@ -241,7 +241,18 @@ Object.assign(CVGenius.prototype, {
                 };
 
                 if (
-                    ["experience", "education", "skills"].includes(section.type)
+                    [
+                        "experience",
+                        "education",
+                        "skills",
+                        "projects",
+                        "publications",
+                        "languages",
+                        "certifications",
+                        "awards",
+                        "volunteer",
+                        "references",
+                    ].includes(section.type)
                 ) {
                     section.items =
                         sectionData.items ||
@@ -530,6 +541,10 @@ Object.assign(CVGenius.prototype, {
                 throw new Error("CV preview element not found");
 
             const cvHeader = document.querySelector("#cvHeader");
+            const cvHeaderGradient = cvHeader
+                ? cvHeader.querySelector(".position-absolute")
+                : null;
+            const allLinks = originalElement.querySelectorAll("a[href]");
 
             // Store original styles and classes
             const originalStyles = {
@@ -540,6 +555,10 @@ Object.assign(CVGenius.prototype, {
                     ? cvHeader.style.marginBottom
                     : null,
                 className: originalElement.className,
+                gradientBackground: cvHeaderGradient
+                    ? cvHeaderGradient.style.background
+                    : null,
+                linkHrefs: Array.from(allLinks).map((link) => link.href),
             };
 
             // Temporarily remove p-5 class and add custom styling
@@ -554,6 +573,16 @@ Object.assign(CVGenius.prototype, {
             if (cvHeader) {
                 cvHeader.style.marginBottom = "1rem"; // Reduce header bottom margin
             }
+
+            // Change gradient to solid color for PDF export
+            if (cvHeaderGradient) {
+                cvHeaderGradient.style.background = "#f2f2f2";
+            }
+
+            // Remove href attributes to prevent clickable links in PDF
+            allLinks.forEach((link) => {
+                link.removeAttribute("href");
+            });
 
             const filename = `cv-${this.getFileName()}.pdf`;
             const opts = {
@@ -597,6 +626,19 @@ Object.assign(CVGenius.prototype, {
                             originalStyles.headerMarginBottom;
                     }
 
+                    // Restore gradient background
+                    if (cvHeaderGradient && originalStyles.gradientBackground) {
+                        cvHeaderGradient.style.background =
+                            originalStyles.gradientBackground;
+                    }
+
+                    // Restore link href attributes
+                    allLinks.forEach((link, index) => {
+                        if (originalStyles.linkHrefs[index]) {
+                            link.href = originalStyles.linkHrefs[index];
+                        }
+                    });
+
                     this.showNotification(
                         "PDF downloaded successfully!",
                         "success"
@@ -621,6 +663,19 @@ Object.assign(CVGenius.prototype, {
                         cvHeader.style.marginBottom =
                             originalStyles.headerMarginBottom;
                     }
+
+                    // Restore gradient background on error
+                    if (cvHeaderGradient && originalStyles.gradientBackground) {
+                        cvHeaderGradient.style.background =
+                            originalStyles.gradientBackground;
+                    }
+
+                    // Restore link href attributes on error
+                    allLinks.forEach((link, index) => {
+                        if (originalStyles.linkHrefs[index]) {
+                            link.href = originalStyles.linkHrefs[index];
+                        }
+                    });
 
                     document.documentElement.setAttribute(
                         "data-bs-theme",

@@ -66,7 +66,7 @@ Object.assign(CVGenius.prototype, {
         if (aiLanguageIndicator) {
             const currentLanguage =
                 localStorage.getItem("cvg_language") || "English";
-            aiLanguageIndicator.textContent = `🌐 ${currentLanguage}`;
+            aiLanguageIndicator.innerHTML = `<i class="fas fa-globe"></i> ${currentLanguage}`;
         }
 
         const suggestionsList = document.getElementById("suggestionsList"),
@@ -582,13 +582,17 @@ ${cvContentText}`;
         }
     },
 
-    async enhanceWithAI(sectionId, sectionType) {
+    async enhanceWithAI(sectionId, sectionType, itemId = null) {
         const section = this.sections.find((s) => s.id === sectionId);
         if (!section) {
             this.showNotification("Section not found.", "error");
             return;
         }
-        this.showNotification(`AI enhancing ${section.title}...`, "info");
+
+        // Show different messages based on whether we're enhancing a specific item or the whole section
+        const enhancementTarget = itemId ? "subsection" : section.title;
+        this.showNotification(`AI enhancing ${enhancementTarget}...`, "info");
+
         let promptText = "";
         let targetElementId = null;
         let isItemBased = false;
@@ -606,7 +610,17 @@ ${cvContentText}`;
                 this.showNotification("No experience entries.", "warning");
                 return;
             }
-            itemToUpdate = section.items[0];
+
+            // If itemId is provided, find the specific item, otherwise use the first one
+            itemToUpdate = itemId
+                ? section.items.find((item) => item.id === itemId)
+                : section.items[0];
+
+            if (!itemToUpdate) {
+                this.showNotification("Experience entry not found.", "error");
+                return;
+            }
+
             fieldToUpdate = "description";
             isItemBased = true;
             promptText = `Rewrite job description for "${
@@ -621,18 +635,125 @@ ${cvContentText}`;
                 this.showNotification("No education entries.", "warning");
                 return;
             }
-            itemToUpdate = section.items[0];
+
+            // If itemId is provided, find the specific item, otherwise use the first one
+            itemToUpdate = itemId
+                ? section.items.find((item) => item.id === itemId)
+                : section.items[0];
+
+            if (!itemToUpdate) {
+                this.showNotification("Education entry not found.", "error");
+                return;
+            }
+
             fieldToUpdate = "details";
             isItemBased = true;
             promptText = `Enhance 'details' for education: Degree: "${itemToUpdate.degree}", Institution: "${itemToUpdate.institution}". Current details: "${itemToUpdate.details}". Make compelling for a ${jobTitleForContext}. Return enhanced text only. ${langInstruction}`;
         } else if (sectionType === "skills") {
-            const skillsText = (section.items || [])
-                .map((cat) => `${cat.category}: ${cat.items.join(", ")}`)
-                .join("; ");
-            promptText = `For a ${jobTitleForContext} with skills "${skillsText}", suggest 3-5 additional relevant skills OR refine categorization/phrasing for clarity. Return list or improved categories/skills. ${langInstruction}`;
+            if (!section.items || section.items.length === 0) {
+                this.showNotification("No skills entries.", "warning");
+                return;
+            }
+
+            // If itemId is provided, enhance just that skill category
+            if (itemId) {
+                itemToUpdate = section.items.find((item) => item.id === itemId);
+                if (!itemToUpdate) {
+                    this.showNotification(
+                        "Skills category not found.",
+                        "error"
+                    );
+                    return;
+                }
+
+                fieldToUpdate = "items";
+                isItemBased = true;
+                const currentSkills = Array.isArray(itemToUpdate.items)
+                    ? itemToUpdate.items.join(", ")
+                    : "";
+                promptText = `For a ${jobTitleForContext}, enhance the "${itemToUpdate.category}" skills category. Current skills: "${currentSkills}". Suggest 3-5 additional relevant skills OR improve existing ones. Return only the enhanced comma-separated skills list. Do not end with a period or dot. ${langInstruction}`;
+            } else {
+                // Fallback to original behavior for whole section
+                const skillsText = (section.items || [])
+                    .map((cat) => `${cat.category}: ${cat.items.join(", ")}`)
+                    .join("; ");
+                promptText = `For a ${jobTitleForContext} with skills "${skillsText}", suggest 3-5 additional relevant skills OR refine categorization/phrasing for clarity. Return list or improved categories/skills. Do not end with a period or dot. ${langInstruction}`;
+            }
         } else if (sectionType === "custom") {
             promptText = `Improve text for CV custom section "${section.title}" for a ${jobTitleForContext}: "${section.content}". Make professional, clear. Return improved text only. ${langInstruction}`;
             targetElementId = `custom-content-${section.id}`;
+        } else if (sectionType === "projects") {
+            if (!section.items || section.items.length === 0) {
+                this.showNotification("No project entries.", "warning");
+                return;
+            }
+
+            // If itemId is provided, find the specific item, otherwise use the first one
+            itemToUpdate = itemId
+                ? section.items.find((item) => item.id === itemId)
+                : section.items[0];
+
+            if (!itemToUpdate) {
+                this.showNotification("Project entry not found.", "error");
+                return;
+            }
+
+            fieldToUpdate = "description";
+            isItemBased = true;
+            promptText = `Enhance project description for "${
+                itemToUpdate.name || "N/A"
+            }" using "${
+                itemToUpdate.technologies || "N/A"
+            }" for a ${jobTitleForContext}. Current description: "${
+                itemToUpdate.description
+            }". Make it highlight technical achievements and impact. Return enhanced text only. ${langInstruction}`;
+        } else if (sectionType === "publications") {
+            if (!section.items || section.items.length === 0) {
+                this.showNotification("No publication entries.", "warning");
+                return;
+            }
+
+            // For publications, we can enhance the entire section content
+            promptText = `Enhance the publications section for a ${jobTitleForContext} CV. Current publications: ${section.items
+                .map(
+                    (pub) =>
+                        `"${pub.title}" by ${pub.authors} in ${pub.publication} (${pub.year})`
+                )
+                .join(
+                    "; "
+                )}. Suggest improvements for formatting and presentation. Return enhanced text only. ${langInstruction}`;
+
+            this.showNotification(
+                `AI suggestions for publications formatting: Consider highlighting impact factor, citations, or relevance to your field.`,
+                "info",
+                8000
+            );
+            return;
+        } else if (sectionType === "volunteer") {
+            if (!section.items || section.items.length === 0) {
+                this.showNotification("No volunteer entries.", "warning");
+                return;
+            }
+
+            // If itemId is provided, find the specific item, otherwise use the first one
+            itemToUpdate = itemId
+                ? section.items.find((item) => item.id === itemId)
+                : section.items[0];
+
+            if (!itemToUpdate) {
+                this.showNotification("Volunteer entry not found.", "error");
+                return;
+            }
+
+            fieldToUpdate = "description";
+            isItemBased = true;
+            promptText = `Enhance volunteer experience description for "${
+                itemToUpdate.role || "N/A"
+            }" at "${
+                itemToUpdate.organization || "N/A"
+            }" for a ${jobTitleForContext}. Current description: "${
+                itemToUpdate.description
+            }". Focus on skills gained and impact made. Return enhanced text only. ${langInstruction}`;
         } else {
             this.showNotification(
                 `AI enhancement for '${sectionType}' not configured.`,
@@ -644,33 +765,59 @@ ${cvContentText}`;
         try {
             const enhancedContent = await this.callOpenAI(promptText);
             if (enhancedContent) {
-                if (sectionType === "skills") {
+                if (sectionType === "skills" && !itemId) {
+                    // Original behavior for whole skills section
                     this.showNotification(
                         `AI Skill Suggestions: ${enhancedContent}. Add manually.`,
                         "info",
                         15000
                     );
+                } else if (sectionType === "skills" && itemId && itemToUpdate) {
+                    // New behavior for specific skill category
+                    // Remove trailing dot if present and split by comma
+                    const cleanedContent = enhancedContent.replace(/\.$/, "");
+                    const skillsArray = cleanedContent
+                        .split(",")
+                        .map((skill) => skill.trim())
+                        .filter((skill) => skill);
+                    itemToUpdate.items = skillsArray;
+                    this.recreateSectionForm(section);
+                    this.renderPreview();
+                    this.showNotification(
+                        `Skills category "${itemToUpdate.category}" enhanced by AI!`,
+                        "success"
+                    );
                 } else if (isItemBased && itemToUpdate && fieldToUpdate) {
                     itemToUpdate[fieldToUpdate] = enhancedContent;
+                    this.recreateSectionForm(section);
+                    this.renderPreview();
+                    this.showNotification(
+                        `${sectionType} entry enhanced by AI!`,
+                        "success"
+                    );
                 } else if (targetElementId) {
                     section.content = enhancedContent;
                     const el = document.getElementById(targetElementId);
                     if (el) el.value = enhancedContent;
-                } else {
-                    section.content = enhancedContent;
-                }
-                if (sectionType !== "skills") {
                     this.recreateSectionForm(section);
                     this.renderPreview();
+                    this.showNotification(
+                        `${section.title} enhanced by AI!`,
+                        "success"
+                    );
+                } else {
+                    section.content = enhancedContent;
+                    this.recreateSectionForm(section);
+                    this.renderPreview();
+                    this.showNotification(
+                        `${section.title} enhanced by AI!`,
+                        "success"
+                    );
                 }
-                this.showNotification(
-                    `${section.title} processed by AI!`,
-                    "success"
-                );
             }
         } catch (e) {
             this.showNotification(
-                `AI enhancement for ${section.title} failed. ${e.message}`,
+                `AI enhancement failed. ${e.message}`,
                 "error"
             );
         }
@@ -808,17 +955,17 @@ ${cvContentText}`;
 
                     if (response.ok) {
                         statusDiv.innerHTML =
-                            '<div class="alert alert-success small">✅ API key is valid and working!</div>';
+                            '<div class="alert alert-success small"><i class="fas fa-check-circle"></i> API key is valid and working!</div>';
                     } else if (response.status === 401) {
                         statusDiv.innerHTML =
-                            '<div class="alert alert-danger small">❌ Invalid API key</div>';
+                            '<div class="alert alert-danger small"><i class="fas fa-times-circle"></i> Invalid API key</div>';
                     } else {
                         statusDiv.innerHTML =
-                            '<div class="alert alert-danger small">❌ Error testing API key</div>';
+                            '<div class="alert alert-danger small"><i class="fas fa-times-circle"></i> Error testing API key</div>';
                     }
                 } catch (error) {
                     statusDiv.innerHTML =
-                        '<div class="alert alert-danger small">❌ Error testing API key</div>';
+                        '<div class="alert alert-danger small"><i class="fas fa-times-circle"></i> Error testing API key</div>';
                 } finally {
                     testBtn.innerHTML = originalText;
                     testBtn.disabled = false;

@@ -29,7 +29,20 @@ Object.assign(CVGenius.prototype, {
             title: this.getSectionTitle(sectionType),
             visible: true,
         };
-        if (["experience", "education", "skills"].includes(sectionType))
+        if (
+            [
+                "experience",
+                "education",
+                "skills",
+                "projects",
+                "publications",
+                "languages",
+                "certifications",
+                "awards",
+                "volunteer",
+                "references",
+            ].includes(sectionType)
+        )
             newSection.items = this.getDefaultContent(sectionType);
         else newSection.content = this.getDefaultContent(sectionType);
         this.sections.push(newSection);
@@ -54,6 +67,13 @@ Object.assign(CVGenius.prototype, {
                 experience: "Work Experience",
                 education: "Education",
                 skills: "Skills",
+                projects: "Projects",
+                publications: "Publications",
+                languages: "Languages",
+                certifications: "Certifications",
+                awards: "Awards & Achievements",
+                volunteer: "Volunteer Experience",
+                references: "References",
                 custom: "Custom Section",
             }[type] || "New Section"
         );
@@ -88,6 +108,77 @@ Object.assign(CVGenius.prototype, {
                 skills: [
                     { id: genId(), category: "Technical Skills", items: [] },
                 ],
+                projects: [
+                    {
+                        id: genId(),
+                        name: "",
+                        description: "",
+                        technologies: "",
+                        duration: "",
+                        url: "",
+                        github: "",
+                    },
+                ],
+                publications: [
+                    {
+                        id: genId(),
+                        title: "",
+                        authors: "",
+                        publication: "",
+                        year: "",
+                        url: "",
+                        doi: "",
+                    },
+                ],
+                languages: [
+                    {
+                        id: genId(),
+                        language: "",
+                        proficiency: "",
+                        certification: "",
+                    },
+                ],
+                certifications: [
+                    {
+                        id: genId(),
+                        name: "",
+                        issuer: "",
+                        date: "",
+                        expiryDate: "",
+                        credentialId: "",
+                        url: "",
+                    },
+                ],
+                awards: [
+                    {
+                        id: genId(),
+                        name: "",
+                        issuer: "",
+                        date: "",
+                        description: "",
+                    },
+                ],
+                volunteer: [
+                    {
+                        id: genId(),
+                        organization: "",
+                        role: "",
+                        duration: "",
+                        location: "",
+                        description: "",
+                    },
+                ],
+                references: [
+                    {
+                        id: genId(),
+                        name: "",
+                        title: "",
+                        company: "",
+                        email: "",
+                        phone: "",
+                        relationship: "",
+                    },
+                ],
                 custom: "Detail custom content...",
             }[type] || ""
         );
@@ -109,10 +200,10 @@ Object.assign(CVGenius.prototype, {
 
         const showAiButtonForSection = [
             "summary",
-            "experience",
-            "education",
-            "skills",
             "custom",
+            "projects",
+            "publications",
+            "volunteer",
         ].includes(section.type);
 
         let formHTML = `
@@ -177,18 +268,46 @@ Object.assign(CVGenius.prototype, {
                             section.id
                         }" class="form-select form-select-sm" onchange="window.cvGenius.changeSectionType('${
             section.id
-        }')">${["summary", "experience", "education", "skills", "custom"]
+        }')">${[
+            "summary",
+            "experience",
+            "education",
+            "skills",
+            "projects",
+            "publications",
+            "languages",
+            "certifications",
+            "awards",
+            "volunteer",
+            "references",
+            "custom",
+        ]
             .map(
                 (t) =>
                     `<option value="${t}" ${
                         section.type === t ? "selected" : ""
                     }>${
                         {
-                            summary: "📝 Summary",
-                            experience: "💼 Experience",
-                            education: "🎓 Education",
-                            skills: "⚡ Skills",
-                            custom: "🔧 Custom",
+                            summary: '<i class="fas fa-file-alt"></i> Summary',
+                            experience:
+                                '<i class="fas fa-briefcase"></i> Experience',
+                            education:
+                                '<i class="fas fa-graduation-cap"></i> Education',
+                            skills: '<i class="fas fa-bolt"></i> Skills',
+                            projects:
+                                '<i class="fas fa-project-diagram"></i> Projects',
+                            publications:
+                                '<i class="fas fa-book"></i> Publications',
+                            languages:
+                                '<i class="fas fa-language"></i> Languages',
+                            certifications:
+                                '<i class="fas fa-certificate"></i> Certifications',
+                            awards: '<i class="fas fa-trophy"></i> Awards',
+                            volunteer:
+                                '<i class="fas fa-hands-helping"></i> Volunteer',
+                            references:
+                                '<i class="fas fa-users"></i> References',
+                            custom: '<i class="fas fa-wrench"></i> Custom',
                         }[t]
                     }</option>`
             )
@@ -233,6 +352,20 @@ Object.assign(CVGenius.prototype, {
             formHTML += this.createEducationForm(section, itemsToRender);
         } else if (section.type === "skills") {
             formHTML += this.createSkillsForm(section, itemsToRender);
+        } else if (section.type === "projects") {
+            formHTML += this.createProjectsForm(section, itemsToRender);
+        } else if (section.type === "publications") {
+            formHTML += this.createPublicationsForm(section, itemsToRender);
+        } else if (section.type === "languages") {
+            formHTML += this.createLanguagesForm(section, itemsToRender);
+        } else if (section.type === "certifications") {
+            formHTML += this.createCertificationsForm(section, itemsToRender);
+        } else if (section.type === "awards") {
+            formHTML += this.createAwardsForm(section, itemsToRender);
+        } else if (section.type === "volunteer") {
+            formHTML += this.createVolunteerForm(section, itemsToRender);
+        } else if (section.type === "references") {
+            formHTML += this.createReferencesForm(section, itemsToRender);
         } else {
             formHTML += this.createCustomForm(section);
         }
@@ -263,6 +396,27 @@ Object.assign(CVGenius.prototype, {
                     `<div class="border rounded p-3 mb-3 item-entry" data-item-id="${
                         item.id
                     }">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-muted">Position ${
+                                itemsToRender.indexOf(item) + 1
+                            }</h6>
+                            <div class="d-flex gap-1">
+                                <button onclick="window.cvGenius.enhanceWithAI('${
+                                    section.id
+                                }', '${section.type}', '${
+                        item.id
+                    }')" class="btn btn-sm text-purple p-1" title="AI: Enhance this position">
+                                    <i class="fas fa-robot"></i>
+                                </button>
+                                ${
+                                    itemsToRender.length > 1
+                                        ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-minus-circle me-1"></i>Remove
+                                    </button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label small fw-medium">Company</label>
@@ -295,13 +449,6 @@ Object.assign(CVGenius.prototype, {
                                 item.description || ""
                             }</textarea>
                         </div>
-                        ${
-                            itemsToRender.length > 1
-                                ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
-                                <i class="fas fa-minus-circle me-1"></i>Remove
-                            </button>`
-                                : ""
-                        }
                     </div>`
             )
             .join("")}
@@ -322,6 +469,27 @@ Object.assign(CVGenius.prototype, {
                     `<div class="border rounded p-3 mb-3 item-entry" data-item-id="${
                         item.id
                     }">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-muted">Education ${
+                                itemsToRender.indexOf(item) + 1
+                            }</h6>
+                            <div class="d-flex gap-1">
+                                <button onclick="window.cvGenius.enhanceWithAI('${
+                                    section.id
+                                }', '${section.type}', '${
+                        item.id
+                    }')" class="btn btn-sm text-purple p-1" title="AI: Enhance this education">
+                                    <i class="fas fa-robot"></i>
+                                </button>
+                                ${
+                                    itemsToRender.length > 1
+                                        ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-minus-circle me-1"></i>Remove
+                                    </button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label class="form-label small fw-medium">Institution</label>
@@ -354,13 +522,6 @@ Object.assign(CVGenius.prototype, {
                                 item.details || ""
                             }</textarea>
                         </div>
-                        ${
-                            itemsToRender.length > 1
-                                ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
-                                <i class="fas fa-minus-circle me-1"></i>Remove
-                            </button>`
-                                : ""
-                        }
                     </div>`
             )
             .join("")}
@@ -381,6 +542,27 @@ Object.assign(CVGenius.prototype, {
                     `<div class="border rounded p-3 mb-3 item-entry" data-item-id="${
                         item.id
                     }">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-muted">Skills Category ${
+                                itemsToRender.indexOf(item) + 1
+                            }</h6>
+                            <div class="d-flex gap-1">
+                                <button onclick="window.cvGenius.enhanceWithAI('${
+                                    section.id
+                                }', '${section.type}', '${
+                        item.id
+                    }')" class="btn btn-sm text-purple p-1" title="AI: Enhance this skill category">
+                                    <i class="fas fa-robot"></i>
+                                </button>
+                                ${
+                                    itemsToRender.length > 1
+                                        ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-minus-circle me-1"></i>Remove
+                                    </button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label class="form-label small fw-medium">Category</label>
                             <input type="text" placeholder="e.g., Programming" class="form-control form-control-sm" value="${
@@ -395,13 +577,6 @@ Object.assign(CVGenius.prototype, {
                                     : ""
                             }</textarea>
                         </div>
-                        ${
-                            itemsToRender.length > 1
-                                ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
-                                <i class="fas fa-minus-circle me-1"></i>Remove
-                            </button>`
-                                : ""
-                        }
                     </div>`
             )
             .join("")}
@@ -427,6 +602,506 @@ Object.assign(CVGenius.prototype, {
         </div>`;
     },
 
+    createProjectsForm(section, itemsToRender) {
+        return `<div class="mb-3">
+            <div id="projects-entries-${section.id}">${itemsToRender
+            .map(
+                (item) =>
+                    `<div class="border rounded p-3 mb-3 item-entry" data-item-id="${
+                        item.id
+                    }">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-muted">Project ${
+                                itemsToRender.indexOf(item) + 1
+                            }</h6>
+                            <div class="d-flex gap-1">
+                                <button onclick="window.cvGenius.enhanceWithAI('${
+                                    section.id
+                                }', '${section.type}', '${
+                        item.id
+                    }')" class="btn btn-sm text-purple p-1" title="AI: Enhance this project">
+                                    <i class="fas fa-robot"></i>
+                                </button>
+                                ${
+                                    itemsToRender.length > 1
+                                        ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-minus-circle me-1"></i>Remove
+                                    </button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Project Name</label>
+                                <input type="text" placeholder="e.g., E-commerce Platform" class="form-control form-control-sm" value="${
+                                    item.name || ""
+                                }" data-field="name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Duration</label>
+                                <input type="text" placeholder="e.g., Jan 2023 - Mar 2023" class="form-control form-control-sm" value="${
+                                    item.duration || ""
+                                }" data-field="duration">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Technologies</label>
+                                <input type="text" placeholder="e.g., React, Node.js, MongoDB" class="form-control form-control-sm" value="${
+                                    item.technologies || ""
+                                }" data-field="technologies">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Project URL</label>
+                                <input type="url" placeholder="https://project-demo.com" class="form-control form-control-sm" value="${
+                                    item.url || ""
+                                }" data-field="url">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">GitHub</label>
+                                <input type="url" placeholder="https://github.com/username/project" class="form-control form-control-sm" value="${
+                                    item.github || ""
+                                }" data-field="github">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-medium">Description</label>
+                                <textarea placeholder="Describe the project, your role, and achievements..." class="form-control form-control-sm" rows="3" data-field="description">${
+                                    item.description || ""
+                                }</textarea>
+                            </div>
+                        </div>
+                    </div>`
+            )
+            .join("")}</div>
+            <button type="button" onclick="window.cvGenius.addItemToSection('${
+                section.id
+            }','${section.type}')" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Add Project
+            </button>
+        </div>`;
+    },
+
+    createPublicationsForm(section, itemsToRender) {
+        return `<div class="mb-3">
+            <div id="publications-entries-${section.id}">${itemsToRender
+            .map(
+                (item) =>
+                    `<div class="border rounded p-3 mb-3 item-entry" data-item-id="${
+                        item.id
+                    }">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-muted">Publication ${
+                                itemsToRender.indexOf(item) + 1
+                            }</h6>
+                            <div class="d-flex gap-1">
+                                ${
+                                    itemsToRender.length > 1
+                                        ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-minus-circle me-1"></i>Remove
+                                    </button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-12">
+                                <label class="form-label small fw-medium">Title</label>
+                                <input type="text" placeholder="e.g., Machine Learning in Healthcare" class="form-control form-control-sm" value="${
+                                    item.title || ""
+                                }" data-field="title">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Authors</label>
+                                <input type="text" placeholder="e.g., John Doe, Jane Smith" class="form-control form-control-sm" value="${
+                                    item.authors || ""
+                                }" data-field="authors">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Publication</label>
+                                <input type="text" placeholder="e.g., Journal of AI Research" class="form-control form-control-sm" value="${
+                                    item.publication || ""
+                                }" data-field="publication">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">Year</label>
+                                <input type="text" placeholder="e.g., 2023" class="form-control form-control-sm" value="${
+                                    item.year || ""
+                                }" data-field="year">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">DOI</label>
+                                <input type="text" placeholder="e.g., 10.1000/xyz123" class="form-control form-control-sm" value="${
+                                    item.doi || ""
+                                }" data-field="doi">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">URL</label>
+                                <input type="url" placeholder="https://journal.com/article" class="form-control form-control-sm" value="${
+                                    item.url || ""
+                                }" data-field="url">
+                            </div>
+                        </div>
+                    </div>`
+            )
+            .join("")}</div>
+            <button type="button" onclick="window.cvGenius.addItemToSection('${
+                section.id
+            }','${section.type}')" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Add Publication
+            </button>
+        </div>`;
+    },
+
+    createLanguagesForm(section, itemsToRender) {
+        return `<div class="mb-3">
+            <div id="languages-entries-${section.id}">${itemsToRender
+            .map(
+                (item) =>
+                    `<div class="border rounded p-3 mb-3 item-entry" data-item-id="${
+                        item.id
+                    }">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-muted">Language ${
+                                itemsToRender.indexOf(item) + 1
+                            }</h6>
+                            <div class="d-flex gap-1">
+                                ${
+                                    itemsToRender.length > 1
+                                        ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-minus-circle me-1"></i>Remove
+                                    </button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">Language</label>
+                                <input type="text" placeholder="e.g., Spanish" class="form-control form-control-sm" value="${
+                                    item.language || ""
+                                }" data-field="language">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">Proficiency</label>
+                                <select class="form-select form-select-sm" data-field="proficiency">
+                                    <option value="">Select level</option>
+                                    <option value="Native" ${
+                                        item.proficiency === "Native"
+                                            ? "selected"
+                                            : ""
+                                    }>Native</option>
+                                    <option value="Fluent" ${
+                                        item.proficiency === "Fluent"
+                                            ? "selected"
+                                            : ""
+                                    }>Fluent</option>
+                                    <option value="Advanced" ${
+                                        item.proficiency === "Advanced"
+                                            ? "selected"
+                                            : ""
+                                    }>Advanced</option>
+                                    <option value="Intermediate" ${
+                                        item.proficiency === "Intermediate"
+                                            ? "selected"
+                                            : ""
+                                    }>Intermediate</option>
+                                    <option value="Basic" ${
+                                        item.proficiency === "Basic"
+                                            ? "selected"
+                                            : ""
+                                    }>Basic</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">Certification</label>
+                                <input type="text" placeholder="e.g., DELE C1" class="form-control form-control-sm" value="${
+                                    item.certification || ""
+                                }" data-field="certification">
+                            </div>
+                        </div>
+                    </div>`
+            )
+            .join("")}</div>
+            <button type="button" onclick="window.cvGenius.addItemToSection('${
+                section.id
+            }','${section.type}')" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Add Language
+            </button>
+        </div>`;
+    },
+
+    createCertificationsForm(section, itemsToRender) {
+        return `<div class="mb-3">
+            <div id="certifications-entries-${section.id}">${itemsToRender
+            .map(
+                (item) =>
+                    `<div class="border rounded p-3 mb-3 item-entry" data-item-id="${
+                        item.id
+                    }">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-muted">Certification ${
+                                itemsToRender.indexOf(item) + 1
+                            }</h6>
+                            <div class="d-flex gap-1">
+                                ${
+                                    itemsToRender.length > 1
+                                        ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-minus-circle me-1"></i>Remove
+                                    </button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Certification Name</label>
+                                <input type="text" placeholder="e.g., AWS Certified Solutions Architect" class="form-control form-control-sm" value="${
+                                    item.name || ""
+                                }" data-field="name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Issuing Authority</label>
+                                <input type="text" placeholder="e.g., Amazon Web Services" class="form-control form-control-sm" value="${
+                                    item.issuer || ""
+                                }" data-field="issuer">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">Issue Date</label>
+                                <input type="text" placeholder="e.g., March 2023" class="form-control form-control-sm" value="${
+                                    item.date || ""
+                                }" data-field="date">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">Expiry Date</label>
+                                <input type="text" placeholder="e.g., March 2026" class="form-control form-control-sm" value="${
+                                    item.expiryDate || ""
+                                }" data-field="expiryDate">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">Credential ID</label>
+                                <input type="text" placeholder="e.g., ABC-123-DEF" class="form-control form-control-sm" value="${
+                                    item.credentialId || ""
+                                }" data-field="credentialId">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-medium">Verification URL</label>
+                                <input type="url" placeholder="https://verify.certification.com" class="form-control form-control-sm" value="${
+                                    item.url || ""
+                                }" data-field="url">
+                            </div>
+                        </div>
+                    </div>`
+            )
+            .join("")}</div>
+            <button type="button" onclick="window.cvGenius.addItemToSection('${
+                section.id
+            }','${section.type}')" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Add Certification
+            </button>
+        </div>`;
+    },
+
+    createAwardsForm(section, itemsToRender) {
+        return `<div class="mb-3">
+            <div id="awards-entries-${section.id}">${itemsToRender
+            .map(
+                (item) =>
+                    `<div class="border rounded p-3 mb-3 item-entry" data-item-id="${
+                        item.id
+                    }">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-muted">Award ${
+                                itemsToRender.indexOf(item) + 1
+                            }</h6>
+                            <div class="d-flex gap-1">
+                                ${
+                                    itemsToRender.length > 1
+                                        ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-minus-circle me-1"></i>Remove
+                                    </button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-8">
+                                <label class="form-label small fw-medium">Award Name</label>
+                                <input type="text" placeholder="e.g., Employee of the Year" class="form-control form-control-sm" value="${
+                                    item.name || ""
+                                }" data-field="name">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-medium">Date</label>
+                                <input type="text" placeholder="e.g., 2023" class="form-control form-control-sm" value="${
+                                    item.date || ""
+                                }" data-field="date">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-medium">Issuing Organization</label>
+                                <input type="text" placeholder="e.g., Tech Corp Inc." class="form-control form-control-sm" value="${
+                                    item.issuer || ""
+                                }" data-field="issuer">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-medium">Description</label>
+                                <textarea placeholder="Describe the achievement and its significance..." class="form-control form-control-sm" rows="2" data-field="description">${
+                                    item.description || ""
+                                }</textarea>
+                            </div>
+                        </div>
+                    </div>`
+            )
+            .join("")}</div>
+            <button type="button" onclick="window.cvGenius.addItemToSection('${
+                section.id
+            }','${section.type}')" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Add Award
+            </button>
+        </div>`;
+    },
+
+    createVolunteerForm(section, itemsToRender) {
+        return `<div class="mb-3">
+            <div id="volunteer-entries-${section.id}">${itemsToRender
+            .map(
+                (item) =>
+                    `<div class="border rounded p-3 mb-3 item-entry" data-item-id="${
+                        item.id
+                    }">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-muted">Volunteer Position ${
+                                itemsToRender.indexOf(item) + 1
+                            }</h6>
+                            <div class="d-flex gap-1">
+                                <button onclick="window.cvGenius.enhanceWithAI('${
+                                    section.id
+                                }', '${section.type}', '${
+                        item.id
+                    }')" class="btn btn-sm text-purple p-1" title="AI: Enhance this volunteer position">
+                                    <i class="fas fa-robot"></i>
+                                </button>
+                                ${
+                                    itemsToRender.length > 1
+                                        ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-minus-circle me-1"></i>Remove
+                                    </button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Organization</label>
+                                <input type="text" placeholder="e.g., Red Cross" class="form-control form-control-sm" value="${
+                                    item.organization || ""
+                                }" data-field="organization">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Role</label>
+                                <input type="text" placeholder="e.g., Volunteer Coordinator" class="form-control form-control-sm" value="${
+                                    item.role || ""
+                                }" data-field="role">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Duration</label>
+                                <input type="text" placeholder="e.g., Jan 2022 - Dec 2022" class="form-control form-control-sm" value="${
+                                    item.duration || ""
+                                }" data-field="duration">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Location</label>
+                                <input type="text" placeholder="e.g., New York, NY" class="form-control form-control-sm" value="${
+                                    item.location || ""
+                                }" data-field="location">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-medium">Description</label>
+                                <textarea placeholder="Describe your volunteer work and impact..." class="form-control form-control-sm" rows="3" data-field="description">${
+                                    item.description || ""
+                                }</textarea>
+                            </div>
+                        </div>
+                    </div>`
+            )
+            .join("")}</div>
+            <button type="button" onclick="window.cvGenius.addItemToSection('${
+                section.id
+            }','${section.type}')" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Add Volunteer Experience
+            </button>
+        </div>`;
+    },
+
+    createReferencesForm(section, itemsToRender) {
+        return `<div class="mb-3">
+            <div id="references-entries-${section.id}">${itemsToRender
+            .map(
+                (item) =>
+                    `<div class="border rounded p-3 mb-3 item-entry" data-item-id="${
+                        item.id
+                    }">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0 text-muted">Reference ${
+                                itemsToRender.indexOf(item) + 1
+                            }</h6>
+                            <div class="d-flex gap-1">
+                                ${
+                                    itemsToRender.length > 1
+                                        ? `<button type="button" onclick="window.cvGenius.removeItemFromSection('${section.id}','${section.type}','${item.id}')" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-minus-circle me-1"></i>Remove
+                                    </button>`
+                                        : ""
+                                }
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Name</label>
+                                <input type="text" placeholder="e.g., John Smith" class="form-control form-control-sm" value="${
+                                    item.name || ""
+                                }" data-field="name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Title</label>
+                                <input type="text" placeholder="e.g., Senior Manager" class="form-control form-control-sm" value="${
+                                    item.title || ""
+                                }" data-field="title">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Company</label>
+                                <input type="text" placeholder="e.g., Tech Corp" class="form-control form-control-sm" value="${
+                                    item.company || ""
+                                }" data-field="company">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Relationship</label>
+                                <input type="text" placeholder="e.g., Former Supervisor" class="form-control form-control-sm" value="${
+                                    item.relationship || ""
+                                }" data-field="relationship">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Email</label>
+                                <input type="email" placeholder="john.smith@company.com" class="form-control form-control-sm" value="${
+                                    item.email || ""
+                                }" data-field="email">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-medium">Phone</label>
+                                <input type="tel" placeholder="(555) 123-4567" class="form-control form-control-sm" value="${
+                                    item.phone || ""
+                                }" data-field="phone">
+                            </div>
+                        </div>
+                    </div>`
+            )
+            .join("")}</div>
+            <button type="button" onclick="window.cvGenius.addItemToSection('${
+                section.id
+            }','${section.type}')" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-plus me-1"></i>Add Reference
+            </button>
+        </div>`;
+    },
+
     getSectionIcon(type) {
         return (
             {
@@ -434,6 +1109,13 @@ Object.assign(CVGenius.prototype, {
                 experience: "fas fa-briefcase",
                 education: "fas fa-graduation-cap",
                 skills: "fas fa-cogs",
+                projects: "fas fa-project-diagram",
+                publications: "fas fa-book",
+                languages: "fas fa-language",
+                certifications: "fas fa-certificate",
+                awards: "fas fa-trophy",
+                volunteer: "fas fa-hands-helping",
+                references: "fas fa-users",
                 custom: "fas fa-tools",
             }[type] || "fas fa-file-alt"
         );
@@ -446,6 +1128,13 @@ Object.assign(CVGenius.prototype, {
                 experience: "bg-gradient-success",
                 education: "bg-gradient-info",
                 skills: "bg-gradient-warning",
+                projects: "bg-gradient-primary",
+                publications: "bg-gradient-secondary",
+                languages: "bg-gradient-dark",
+                certifications: "bg-gradient-success",
+                awards: "bg-gradient-warning",
+                volunteer: "bg-gradient-info",
+                references: "bg-gradient-secondary",
                 custom: "bg-gradient-danger",
             }[type] || "bg-gradient-secondary"
         );
@@ -474,7 +1163,18 @@ Object.assign(CVGenius.prototype, {
             section.content =
                 formEl.querySelector(`#summary-${sectionId}`)?.value || "";
         } else if (
-            ["experience", "education", "skills"].includes(section.type)
+            [
+                "experience",
+                "education",
+                "skills",
+                "projects",
+                "publications",
+                "languages",
+                "certifications",
+                "awards",
+                "volunteer",
+                "references",
+            ].includes(section.type)
         ) {
             const itemEntries = formEl.querySelectorAll(".item-entry");
             section.items = Array.from(itemEntries).map((entryEl) => {
@@ -542,6 +1242,70 @@ Object.assign(CVGenius.prototype, {
             };
         } else if (sectionType === "skills") {
             newItem = { id: genId(), category: "", items: [] };
+        } else if (sectionType === "projects") {
+            newItem = {
+                id: genId(),
+                name: "",
+                description: "",
+                technologies: "",
+                duration: "",
+                url: "",
+                github: "",
+            };
+        } else if (sectionType === "publications") {
+            newItem = {
+                id: genId(),
+                title: "",
+                authors: "",
+                publication: "",
+                year: "",
+                url: "",
+                doi: "",
+            };
+        } else if (sectionType === "languages") {
+            newItem = {
+                id: genId(),
+                language: "",
+                proficiency: "",
+                certification: "",
+            };
+        } else if (sectionType === "certifications") {
+            newItem = {
+                id: genId(),
+                name: "",
+                issuer: "",
+                date: "",
+                expiryDate: "",
+                credentialId: "",
+                url: "",
+            };
+        } else if (sectionType === "awards") {
+            newItem = {
+                id: genId(),
+                name: "",
+                issuer: "",
+                date: "",
+                description: "",
+            };
+        } else if (sectionType === "volunteer") {
+            newItem = {
+                id: genId(),
+                organization: "",
+                role: "",
+                duration: "",
+                location: "",
+                description: "",
+            };
+        } else if (sectionType === "references") {
+            newItem = {
+                id: genId(),
+                name: "",
+                title: "",
+                company: "",
+                email: "",
+                phone: "",
+                relationship: "",
+            };
         } else return;
 
         section.items.push(newItem);
@@ -601,6 +1365,70 @@ Object.assign(CVGenius.prototype, {
                         id: genId(),
                         category: "",
                         items: [],
+                    });
+                } else if (sectionType === "projects") {
+                    section.items.push({
+                        id: genId(),
+                        name: "",
+                        description: "",
+                        technologies: "",
+                        duration: "",
+                        url: "",
+                        github: "",
+                    });
+                } else if (sectionType === "publications") {
+                    section.items.push({
+                        id: genId(),
+                        title: "",
+                        authors: "",
+                        publication: "",
+                        year: "",
+                        url: "",
+                        doi: "",
+                    });
+                } else if (sectionType === "languages") {
+                    section.items.push({
+                        id: genId(),
+                        language: "",
+                        proficiency: "",
+                        certification: "",
+                    });
+                } else if (sectionType === "certifications") {
+                    section.items.push({
+                        id: genId(),
+                        name: "",
+                        issuer: "",
+                        date: "",
+                        expiryDate: "",
+                        credentialId: "",
+                        url: "",
+                    });
+                } else if (sectionType === "awards") {
+                    section.items.push({
+                        id: genId(),
+                        name: "",
+                        issuer: "",
+                        date: "",
+                        description: "",
+                    });
+                } else if (sectionType === "volunteer") {
+                    section.items.push({
+                        id: genId(),
+                        organization: "",
+                        role: "",
+                        duration: "",
+                        location: "",
+                        description: "",
+                    });
+                } else if (sectionType === "references") {
+                    section.items.push({
+                        id: genId(),
+                        name: "",
+                        title: "",
+                        company: "",
+                        email: "",
+                        phone: "",
+                        relationship: "",
                     });
                 }
             }
