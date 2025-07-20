@@ -1695,10 +1695,485 @@ Object.assign(CVGenius.prototype, {
     },
 
     reorderAllSections() {
-        this.showNotification("Reorder All: Not fully implemented.", "info");
+        this.showReorderModal();
+    },
+
+    showReorderModal() {
+        const existingModal = document.querySelector(".reorder-modal");
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const modalOverlay = document.createElement("div");
+        modalOverlay.className = "reorder-modal modal-overlay";
+
+        const modalContent = document.createElement("div");
+        modalContent.className = "modal-content modal-content-md"
+
+        const sectionsList = this.sections.map((section, index) => 
+            `<div class="reorder-item" data-section-id="${section.id}" draggable="true">
+                <i class="fas fa-grip-vertical reorder-grip"></i>
+                <div class="reorder-content">
+                    <strong class="reorder-title">${section.title}</strong>
+                    <small class="reorder-type">${section.type.replace(/([A-Z])/g, ' $1').trim()}</small>
+                </div>
+                <span class="badge reorder-number">${index + 1}</span>
+            </div>`
+        ).join('');
+
+        modalContent.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fas fa-sort me-2 text-primary"></i>Reorder Sections</h4>
+                <button type="button" class="btn-close" onclick="this.closest('.reorder-modal').remove()"></button>
+            </div>
+            <p class="text-muted mb-4">Choose how to reorder your sections:</p>
+            <div class="mb-4">
+                <h6>Quick Reorder Options:</h6>
+                <div class="d-grid gap-2 mb-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="cvGenius.reorderSectionsAlphabetically(); this.closest('.reorder-modal').remove();">
+                        <i class="fas fa-sort-alpha-down me-2"></i>Alphabetical (A-Z)
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="cvGenius.reorderSectionsByType(); this.closest('.reorder-modal').remove();">
+                        <i class="fas fa-layer-group me-2"></i>By Type (Summary, Experience, Education...)
+                    </button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="cvGenius.reverseCurrentOrder(); this.closest('.reorder-modal').remove();">
+                        <i class="fas fa-sort-numeric-up me-2"></i>Reverse Current Order
+                    </button>
+                </div>
+            </div>
+            <div class="mb-4">
+                <h6>Manual Reorder:</h6>
+                <p class="small text-muted mb-3">Drag and drop sections to reorder manually</p>
+                <div class="reorder-list-container" id="reorder-list">
+                    ${sectionsList}
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="button" class="btn btn-outline-success btn-sm" onclick="cvGenius.applyManualReorder(); this.closest('.reorder-modal').remove();">
+                        <i class="fas fa-check me-2"></i>Apply New Order
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cvGenius.resetReorderList()">
+                        <i class="fas fa-undo me-2"></i>Reset
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary" onclick="this.closest('.reorder-modal').remove();">
+                    Cancel
+                </button>
+            </div>
+        `;
+
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+
+        modalOverlay.addEventListener("click", (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.remove();
+            }
+        });
+
+        // Initialize drag and drop after modal is added to DOM
+        setTimeout(() => this.initializeDragAndDrop(), 100);
+    },
+
+    reorderSectionsAlphabetically() {
+        this.sections.sort((a, b) => a.title.localeCompare(b.title));
+        this.reorderSectionForms();
+        this.renderPreview();
+        this.showNotification("Sections reordered alphabetically!", "success");
+        this.autoSaveToLocalStorage();
+    },
+
+    reorderSectionsByType() {
+        const typeOrder = {
+            'summary': 1,
+            'experience': 2,
+            'education': 3,
+            'skills': 4,
+            'projects': 5,
+            'publications': 6,
+            'languages': 7,
+            'certifications': 8,
+            'awards': 9,
+            'volunteer': 10,
+            'references': 11,
+            'custom': 12
+        };
+        
+        this.sections.sort((a, b) => {
+            const orderA = typeOrder[a.type] || 99;
+            const orderB = typeOrder[b.type] || 99;
+            return orderA - orderB;
+        });
+        this.reorderSectionForms();
+        this.renderPreview();
+        this.showNotification("Sections reordered by type!", "success");
+        this.autoSaveToLocalStorage();
+    },
+
+    reverseCurrentOrder() {
+        this.sections.reverse();
+        this.reorderSectionForms();
+        this.renderPreview();
+        this.showNotification("Section order reversed!", "success");
+        this.autoSaveToLocalStorage();
     },
 
     showBulkActions() {
-        this.showNotification("Bulk Actions: Not fully implemented.", "info");
+        this.showBulkEditModal();
+    },
+
+    showBulkEditModal() {
+        const existingModal = document.querySelector(".bulk-edit-modal");
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const modalOverlay = document.createElement("div");
+        modalOverlay.className = "bulk-edit-modal modal-overlay";
+
+        const modalContent = document.createElement("div");
+        modalContent.className = "modal-content modal-content-lg"
+
+        const sectionsCheckboxes = this.sections.map(section => 
+            `<div class="bulk-section-item">
+                <input class="form-check-input bulk-section-checkbox" type="checkbox" value="${section.id}" id="bulk-${section.id}">
+                <label class="form-check-label d-flex align-items-center" for="bulk-${section.id}">
+                    <div class="flex-grow-1">
+                        <strong class="bulk-section-title">${section.title}</strong>
+                        <small class="bulk-section-type d-block">${section.type.replace(/([A-Z])/g, ' $1').trim()}</small>
+                    </div>
+                    <span class="badge ${section.visible ? 'bg-success' : 'bg-secondary'}">
+                        <i class="fas ${section.visible ? 'fa-eye' : 'fa-eye-slash'} me-1"></i>
+                        ${section.visible ? 'Visible' : 'Hidden'}
+                    </span>
+                </label>
+            </div>`
+        ).join('');
+
+        modalContent.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fas fa-tasks me-2 text-primary"></i>Bulk Edit Sections</h4>
+                <button type="button" class="btn-close" onclick="this.closest('.bulk-edit-modal').remove()"></button>
+            </div>
+            <p class="text-muted mb-4">Select sections to perform bulk actions:</p>
+            
+            <div class="mb-3">
+                <div class="d-flex gap-2 mb-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" onclick="cvGenius.selectAllBulkSections()">
+                        <i class="fas fa-check-square me-1"></i>Select All
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="cvGenius.clearAllBulkSections()">
+                        <i class="fas fa-square me-1"></i>Clear All
+                    </button>
+                </div>
+                
+                <div class="sections-list-container">
+                    ${sectionsCheckboxes}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h6>Bulk Actions:</h6>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success" onclick="cvGenius.bulkToggleVisibility(true)">
+                        <i class="fas fa-eye me-2"></i>Show Selected Sections
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="cvGenius.bulkToggleVisibility(false)">
+                        <i class="fas fa-eye-slash me-2"></i>Hide Selected Sections
+                    </button>
+                    <button type="button" class="btn btn-info" onclick="cvGenius.bulkDuplicateSections()">
+                        <i class="fas fa-copy me-2"></i>Duplicate Selected Sections
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="cvGenius.bulkDeleteSections()">
+                        <i class="fas fa-trash me-2"></i>Delete Selected Sections
+                    </button>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary" onclick="this.closest('.bulk-edit-modal').remove();">
+                    Cancel
+                </button>
+            </div>
+        `;
+
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+
+        modalOverlay.addEventListener("click", (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.remove();
+            }
+        });
+    },
+
+    selectAllBulkSections() {
+        const checkboxes = document.querySelectorAll('.bulk-section-checkbox');
+        checkboxes.forEach(checkbox => checkbox.checked = true);
+    },
+
+    clearAllBulkSections() {
+        const checkboxes = document.querySelectorAll('.bulk-section-checkbox');
+        checkboxes.forEach(checkbox => checkbox.checked = false);
+    },
+
+    getSelectedBulkSections() {
+        const checkboxes = document.querySelectorAll('.bulk-section-checkbox:checked');
+        return Array.from(checkboxes).map(checkbox => checkbox.value);
+    },
+
+    bulkToggleVisibility(visible) {
+        const selectedIds = this.getSelectedBulkSections();
+        if (selectedIds.length === 0) {
+            this.showNotification("Please select at least one section.", "warning");
+            return;
+        }
+
+        selectedIds.forEach(sectionId => {
+            const section = this.sections.find(s => s.id === sectionId);
+            if (section) {
+                section.visible = visible;
+                // Update the checkbox in the section form if it exists
+                const checkbox = document.getElementById(`section-visible-${sectionId}`);
+                if (checkbox) {
+                    checkbox.checked = visible;
+                }
+            }
+        });
+
+        this.renderPreview();
+        this.autoSaveToLocalStorage();
+        
+        const action = visible ? 'shown' : 'hidden';
+        this.showNotification(`${selectedIds.length} section(s) ${action}!`, "success");
+        
+        // Close the modal
+        document.querySelector('.bulk-edit-modal')?.remove();
+    },
+
+    bulkDuplicateSections() {
+        const selectedIds = this.getSelectedBulkSections();
+        if (selectedIds.length === 0) {
+            this.showNotification("Please select at least one section to duplicate.", "warning");
+            return;
+        }
+
+        if (!confirm(`Duplicate ${selectedIds.length} selected section(s)?`)) {
+            return;
+        }
+
+        const genId = () => Date.now().toString() + Math.random().toString(36).substr(2, 5);
+        let duplicatedCount = 0;
+
+        selectedIds.forEach(sectionId => {
+            const originalSection = this.sections.find(s => s.id === sectionId);
+            if (originalSection) {
+                const duplicatedSection = JSON.parse(JSON.stringify(originalSection));
+                duplicatedSection.id = genId();
+                duplicatedSection.title = `${originalSection.title} (Copy)`;
+                
+                if (Array.isArray(duplicatedSection.items)) {
+                    duplicatedSection.items.forEach(item => item.id = genId());
+                }
+                
+                const index = this.sections.findIndex(s => s.id === sectionId);
+                this.sections.splice(index + 1, 0, duplicatedSection);
+                duplicatedCount++;
+            }
+        });
+
+        this.cvData.sections = this.sections;
+        
+        // Recreate all section forms to maintain order
+        const formContainer = document.getElementById("formContainer");
+        if (formContainer) {
+            Array.from(formContainer.querySelectorAll(".form-section[id^='section-form-']")).forEach(form => form.remove());
+            this.sections.forEach(section => this.createSectionForm(section));
+        }
+        
+        this.renderPreview();
+        this.autoSaveToLocalStorage();
+        
+        this.showNotification(`${duplicatedCount} section(s) duplicated!`, "success");
+        
+        // Close the modal
+        document.querySelector('.bulk-edit-modal')?.remove();
+    },
+
+    bulkDeleteSections() {
+        const selectedIds = this.getSelectedBulkSections();
+        if (selectedIds.length === 0) {
+            this.showNotification("Please select at least one section to delete.", "warning");
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to delete ${selectedIds.length} selected section(s)? This action cannot be undone.`)) {
+            return;
+        }
+
+        let deletedCount = 0;
+        selectedIds.forEach(sectionId => {
+            const section = this.sections.find(s => s.id === sectionId);
+            if (section) {
+                this.sections = this.sections.filter(s => s.id !== sectionId);
+                const formEl = document.getElementById(`section-form-${sectionId}`);
+                if (formEl) {
+                    formEl.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+                    formEl.style.opacity = "0";
+                    formEl.style.transform = "scale(0.95)";
+                    setTimeout(() => formEl.remove(), 300);
+                }
+                deletedCount++;
+            }
+        });
+
+        this.cvData.sections = this.sections;
+        this.renderPreview();
+        this.autoSaveToLocalStorage();
+        
+        this.showNotification(`${deletedCount} section(s) deleted!`, "success");
+        
+        // Close the modal
+        document.querySelector('.bulk-edit-modal')?.remove();
+    },
+
+    initializeDragAndDrop() {
+        const reorderList = document.getElementById('reorder-list');
+        if (!reorderList) return;
+
+        let draggedElement = null;
+        let draggedIndex = -1;
+        let placeholder = null;
+
+        // Create placeholder element
+        const createPlaceholder = () => {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'reorder-placeholder';
+            placeholder.innerHTML = '<i class="fas fa-arrow-down text-primary"></i>';
+            return placeholder;
+        };
+
+        reorderList.addEventListener('dragstart', (e) => {
+            if (!e.target.classList.contains('reorder-item')) return;
+            
+            draggedElement = e.target;
+            draggedIndex = Array.from(reorderList.children).indexOf(draggedElement);
+            
+            e.target.classList.add('dragging');
+            
+            // Create and insert placeholder
+            placeholder = createPlaceholder();
+            draggedElement.parentNode.insertBefore(placeholder, draggedElement.nextSibling);
+            
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', e.target.outerHTML);
+        });
+
+        reorderList.addEventListener('dragend', (e) => {
+            if (e.target === draggedElement) {
+                e.target.classList.remove('dragging');
+            }
+            
+            // Remove placeholder
+            if (placeholder && placeholder.parentNode) {
+                placeholder.parentNode.removeChild(placeholder);
+            }
+            
+            draggedElement = null;
+            draggedIndex = -1;
+            placeholder = null;
+        });
+
+        reorderList.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            const afterElement = getDragAfterElement(reorderList, e.clientY);
+            if (placeholder) {
+                if (afterElement == null) {
+                    reorderList.appendChild(placeholder);
+                } else {
+                    reorderList.insertBefore(placeholder, afterElement);
+                }
+            }
+        });
+
+        reorderList.addEventListener('drop', (e) => {
+            e.preventDefault();
+            
+            if (!draggedElement || !placeholder) return;
+            
+            // Insert dragged element at placeholder position
+            placeholder.parentNode.insertBefore(draggedElement, placeholder);
+            
+            // Update visual order numbers
+            this.updateReorderNumbers();
+        });
+
+        // Hover effects are handled by CSS
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.reorder-item:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+    },
+
+    updateReorderNumbers() {
+        const reorderItems = document.querySelectorAll('.reorder-item');
+        reorderItems.forEach((item, index) => {
+            const badge = item.querySelector('.badge');
+            if (badge) {
+                badge.textContent = index + 1;
+            }
+        });
+    },
+
+    applyManualReorder() {
+        const reorderItems = document.querySelectorAll('.reorder-item');
+        const newOrder = Array.from(reorderItems).map(item => {
+            const sectionId = item.dataset.sectionId;
+            return this.sections.find(s => s.id === sectionId);
+        }).filter(Boolean);
+
+        if (newOrder.length === this.sections.length) {
+            this.sections = newOrder;
+            this.reorderSectionForms();
+            this.renderPreview();
+            this.showNotification("Sections reordered manually!", "success");
+            this.autoSaveToLocalStorage();
+        } else {
+            this.showNotification("Error applying new order. Please try again.", "error");
+        }
+    },
+
+    resetReorderList() {
+        const reorderList = document.getElementById('reorder-list');
+        if (!reorderList) return;
+
+        // Regenerate the list with original order
+        const sectionsList = this.sections.map((section, index) => 
+            `<div class="reorder-item" data-section-id="${section.id}" draggable="true">
+                <i class="fas fa-grip-vertical reorder-grip"></i>
+                <div class="reorder-content">
+                    <strong class="reorder-title">${section.title}</strong>
+                    <small class="reorder-type">${section.type.replace(/([A-Z])/g, ' $1').trim()}</small>
+                </div>
+                <span class="badge reorder-number">${index + 1}</span>
+            </div>`
+        ).join('');
+
+        reorderList.innerHTML = sectionsList;
+        this.showNotification("Order reset to original!", "info");
     },
 });

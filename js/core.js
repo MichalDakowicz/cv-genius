@@ -393,6 +393,8 @@ class CVGenius {
         document.querySelector(".save-modal")?.remove();
         document.querySelector(".load-modal")?.remove();
         document.querySelector(".export-modal")?.remove();
+        document.querySelector(".reorder-modal")?.remove();
+        document.querySelector(".bulk-edit-modal")?.remove();
         if (this.sectionSelectVisible) this.handleAddSectionClick();
     }
 }
